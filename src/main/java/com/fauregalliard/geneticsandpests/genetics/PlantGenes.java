@@ -79,7 +79,10 @@ public record PlantGenes(Map<Gene, Integer> values) {
 
     /** A copy of this genome with one gene changed. */
     public PlantGenes with(Gene gene, int value) {
-        Map<Gene, Integer> copy = new EnumMap<>(this.values);
+        // Keyed on Gene.class rather than copying this.values: that map is an unmodifiable wrapper,
+        // never an EnumMap, so EnumMap's copy constructor would reject it whenever it is empty.
+        Map<Gene, Integer> copy = new EnumMap<>(Gene.class);
+        copy.putAll(this.values);
         copy.put(gene, Mth.clamp(value, MIN_VALUE, Config.MAX_GENE_VALUE.getAsInt()));
         return new PlantGenes(copy);
     }
