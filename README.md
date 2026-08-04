@@ -10,22 +10,59 @@ A Minecraft mod for NeoForge 1.21.11, by [fauregalliard](https://github.com/Faur
 | NeoForge | 21.11.45 |
 | Package | `com.fauregalliard.geneticsandpests` |
 
-Concept: A redesign of Minecraft's farming system that introduces seed genetics with
-attributes (NBT data), hostile ecosystems driven by artificial intelligence (winged pests),
-and a disease propagation system based on cellular automata.
+Concept: A redesign of Minecraft's farming system that introduces seed genetics, hostile
+ecosystems driven by artificial intelligence (winged pests), and a disease propagation
+system based on cellular automata.
 
-Core Mechanics:
+The mod adds **no seeds and no crops of its own**. It attaches genetics to the plants the
+game already has, so vanilla wheat is genetic wheat and there is never a second, parallel
+farming tree to learn.
 
-Seed Genetics (Data Management): Every seed carries unique attributes (Growth, Yield,
-Resistance) stored as NBT tags. Crops are crossbred to inherit and mutate these stats.
+Core Mechanics
+--------------
 
-Airborne Pests (State Machine AI): A new entity (Crow) derived from the vanilla model but
+**Seed Genetics.** Every seed carries its own genome, stored as a data component on the
+item itself and as chunk data once planted. A seed whose genes are all at the baseline
+behaves exactly like vanilla, so nothing about ordinary farming changes until you start
+breeding.
+
+| Gene | What it does |
+|---|---|
+| Growth | Advances through growth stages faster |
+| Yield | Drops more produce per harvest |
+| Resistance | Shrugs off disease |
+| Photosensitivity | Grows in light too dim for vanilla crops — cave farming |
+| Thirst | Grows on dry farmland without the usual slowdown |
+| Regrowth | Replants itself instead of dying when destroyed |
+| Trampling | Survives being walked over |
+| Camouflage | Pests are less likely to spot it |
+| Fertility | Yields extra seeds and crossbreeds more eagerly |
+
+**Crossbreeding.** Harvesting a mature plant crosses it with a mature neighbour of the same
+kind: each gene is inherited from one parent at random and may drift a point in either
+direction. Every seed from the harvest is rolled independently, so most come back close to
+the parent and roughly one in three comes out with a gene improved. Planting your best seeds
+next to each other and harvesting the result is the whole loop — a lone plant self-pollinates
+rather than stalling.
+
+**Airborne Pests (State Machine AI).** A new entity (Crow) derived from the vanilla model but
 with a rewritten AI (Custom Goals). It scans its surroundings using bounding boxes (AABB)
-to locate and destroy vulnerable crops.
+to locate and destroy vulnerable crops, countered by the Camouflage gene.
 
-Plant Diseases (Cellular Automata): Plants can contract diseases (which modify their
-BlockState) that spread to adjacent blocks by rolling probabilities on each server tick,
-countered by the plant's Resistance attribute.
+**Plant Diseases (Cellular Automata).** Plants can contract diseases that spread to adjacent
+blocks by rolling probabilities on a server tick, countered by the Resistance gene.
+
+Mod Compatibility
+-----------------
+
+Which plants take part is decided entirely by two datapack tags:
+
+- `#geneticsandpests:genetic_crops` — crop blocks that carry a genome while planted
+- `#geneticsandpests:genetic_seeds` — items that carry a genome between harvest and planting
+
+Adding a crop from another farming mod needs no code and no add-on: put its block and its
+seed in those tags and it inherits the whole system. Genomes live on chunk data rather than
+in block entities precisely so that blocks the mod does not own can carry them.
 
 Development
 =======
