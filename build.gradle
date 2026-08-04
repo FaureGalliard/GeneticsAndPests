@@ -14,7 +14,9 @@ tasks.named('wrapper', Wrapper).configure {
     distributionType = Wrapper.DistributionType.BIN
 }
 
-version = mod_version
+// The Minecraft version belongs in the file name: a jar for 1.21.11 and one for the next release
+// are not interchangeable, and nothing else in the name says which is which.
+version = "$minecraft_version-$mod_version"
 group = mod_group_id
 
 sourceSets.main.resources {
