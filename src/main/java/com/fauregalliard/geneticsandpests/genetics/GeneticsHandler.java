@@ -84,14 +84,22 @@ public final class GeneticsHandler {
 
         ServerLevel level = event.getLevel();
         BlockPos pos = event.getPos();
-        PlantGenes parent = GeneStorage.get(level, pos);
-        if (parent == null) {
-            return;
+
+        // An untracked plant is an ordinary one, so it breeds from the baseline genome rather than
+        // being skipped. This is what lets the whole system start from a plain vanilla farm: harvest
+        // often enough and a seed eventually comes back better than the one that was sown.
+        PlantGenes stored = GeneStorage.get(level, pos);
+        PlantGenes parent = stored == null ? PlantGenes.DEFAULT : stored;
+        if (stored != null) {
+            GeneStorage.clear(level, pos);
         }
-        GeneStorage.clear(level, pos);
 
         RandomSource random = level.random;
         boolean mature = !(state.getBlock() instanceof CropBlock crop) || crop.isMaxAge(state);
+        if (!mature && stored == null) {
+            // Nothing to inherit and nothing to breed: leave an ordinary immature plant alone.
+            return;
+        }
 
         // An immature plant simply hands its own genome back; only a real harvest breeds.
         PlantGenes offspring = mature
@@ -144,11 +152,11 @@ public final class GeneticsHandler {
             // The stack that already exists becomes the first seed; the rest ride along beside it,
             // because two seeds with different genomes cannot share one stack.
             stack.setCount(1);
-            stack.set(ModDataComponents.PLANT_GENES.get(), roll(offspring, improvementChance, random));
+            stamp(stack, roll(offspring, improvementChance, random));
 
             for (int i = 1; i < seeds; i++) {
                 ItemStack extra = stack.copyWithCount(1);
-                extra.set(ModDataComponents.PLANT_GENES.get(), roll(offspring, improvementChance, random));
+                stamp(extra, roll(offspring, improvementChance, random));
                 extras.add(new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, extra));
             }
         }
@@ -158,6 +166,16 @@ public final class GeneticsHandler {
 
     private static PlantGenes roll(PlantGenes offspring, double improvementChance, RandomSource random) {
         return random.nextDouble() < improvementChance ? offspring.improved(random) : offspring;
+    }
+
+    /**
+     * Writes a genome onto a seed, but only one worth carrying. A seed that came out ordinary keeps
+     * no component at all, so a vanilla farm never fills its chests with tagged items.
+     */
+    private static void stamp(ItemStack seed, PlantGenes genes) {
+        if (!genes.isBaseline()) {
+            seed.set(ModDataComponents.PLANT_GENES.get(), genes);
+        }
     }
 
     /** Puts the plant back as a seedling, keeping the genome that earned it the second life. */
