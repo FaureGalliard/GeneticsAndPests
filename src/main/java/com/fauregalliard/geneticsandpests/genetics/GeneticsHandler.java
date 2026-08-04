@@ -142,7 +142,7 @@ public final class GeneticsHandler {
 
             if (!stack.is(ModTags.GENETIC_SEEDS)) {
                 if (mature) {
-                    stack.grow(parent.rollBonusProduce(random));
+                    stack.grow(parent.bonusProduce(random));
                 }
                 continue;
             }

@@ -7,17 +7,26 @@ public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     public static final ModConfigSpec.IntValue MAX_GENE_VALUE = BUILDER
-            .comment("Upper bound every gene is clamped to")
-            .defineInRange("maxGeneValue", 10, 1, 100);
+            .comment("Upper bound every gene is clamped to. Every trait scales against this,",
+                    "so lowering it makes a maxed plant weaker rather than breaking the curve.")
+            .defineInRange("maxGeneValue", 20, 1, 100);
 
-    public static final ModConfigSpec.DoubleValue MUTATION_CHANCE = BUILDER
-            .comment("Probability that a gene drifts a point instead of being inherited cleanly")
-            .defineInRange("mutationChance", 0.1D, 0.0D, 1.0D);
+    public static final ModConfigSpec.DoubleValue INHERITANCE_DOMINANCE = BUILDER
+            .comment("Probability that a crossed gene takes the better parent's value instead of the weaker one.",
+                    "Breeding never lowers a gene on its own; this only decides how fast the better line wins.")
+            .defineInRange("inheritanceDominance", 0.75D, 0.0D, 1.0D);
 
     public static final ModConfigSpec.DoubleValue IMPROVEMENT_CHANCE = BUILDER
-            .comment("Probability that a harvested seed comes out with one gene improved.",
-                    "At the default of 1/3, roughly one seed in three is an upgrade.")
-            .defineInRange("improvementChance", 0.34D, 0.0D, 1.0D);
+            .comment("Probability that a harvested seed attempts to improve one of its genes.",
+                    "The gene is picked at random, so all nine advance in parallel.")
+            .defineInRange("improvementChance", 0.5D, 0.0D, 1.0D);
+
+    public static final ModConfigSpec.DoubleValue IMPROVEMENT_FALLOFF = BUILDER
+            .comment("How much harder each level is than the one before it.",
+                    "The odds of raising a gene are this value to the power of its current level,",
+                    "so at the default of 0.90 the first levels are quick and the last ones are a project.",
+                    "Set to 1.0 to make every level equally likely.")
+            .defineInRange("improvementFalloff", 0.90D, 0.01D, 1.0D);
 
     public static final ModConfigSpec.DoubleValue DISEASE_SPREAD_CHANCE = BUILDER
             .comment("Base probability, per disease pass, that a sick plant infects an adjacent one")

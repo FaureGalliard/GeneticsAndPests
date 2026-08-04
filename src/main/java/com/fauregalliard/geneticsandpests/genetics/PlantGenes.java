@@ -88,42 +88,60 @@ public record PlantGenes(Map<Gene, Integer> values) {
     }
 
     /**
-     * Crossbreeds two genomes. Each gene is inherited from one parent at random and may then drift
-     * a point in either direction.
+     * Crossbreeds two genomes.
+     *
+     * <p>Each gene takes the better parent's value most of the time and the weaker one otherwise.
+     * Nothing here can push a gene down on its own: breeding preserves what was earned, and the
+     * only way a value rises is the improvement roll on harvest. A line you have spent an evening
+     * building should not decay because of a bad die.
      */
     public PlantGenes cross(PlantGenes other, RandomSource random) {
         Map<Gene, Integer> child = new EnumMap<>(Gene.class);
-        double mutationChance = Config.MUTATION_CHANCE.getAsDouble();
-        int max = Config.MAX_GENE_VALUE.getAsInt();
+        double dominance = Config.INHERITANCE_DOMINANCE.getAsDouble();
 
         for (Gene gene : Gene.values()) {
-            int value = random.nextBoolean() ? this.get(gene) : other.get(gene);
-            if (random.nextDouble() < mutationChance) {
-                value += random.nextBoolean() ? 1 : -1;
-            }
-            child.put(gene, Mth.clamp(value, MIN_VALUE, max));
+            int mine = this.get(gene);
+            int theirs = other.get(gene);
+            boolean takeBetter = random.nextDouble() < dominance;
+            child.put(gene, takeBetter ? Math.max(mine, theirs) : Math.min(mine, theirs));
         }
         return new PlantGenes(child);
     }
 
-    /** Bumps one random gene by a point. This is the reward for harvesting a lucky seed. */
+    /**
+     * Tries to raise one random gene by a point.
+     *
+     * <p>The odds fall off geometrically with the gene's current value, so the first levels come
+     * quickly and the last ones are a project. Since the payoff curve climbs faster than the odds
+     * fall, a high gene stays worth chasing.
+     */
     public PlantGenes improved(RandomSource random) {
         Gene gene = Gene.values()[random.nextInt(Gene.values().length)];
-        return this.with(gene, this.get(gene) + 1);
+        int value = this.get(gene);
+        double odds = Math.pow(Config.IMPROVEMENT_FALLOFF.getAsDouble(), value - MIN_VALUE);
+        return random.nextDouble() < odds ? this.with(gene, value + 1) : this;
     }
 
     // --- Trait readings -------------------------------------------------------------------
     // Each of these turns a raw gene value into the number the game logic actually wants, so the
-    // balancing lives in one place.
+    // balancing lives in one place and every trait scales with the configured ceiling rather than
+    // with hardcoded step sizes.
+
+    /** Where a gene sits between the baseline and the ceiling, from 0 to 1. */
+    private double normalized(Gene gene) {
+        int max = Config.MAX_GENE_VALUE.getAsInt();
+        return max <= MIN_VALUE ? 0.0D : (double) (this.get(gene) - MIN_VALUE) / (max - MIN_VALUE);
+    }
 
     /** Multiplier on the base chance to advance a growth stage. Baseline keeps the vanilla pace. */
     public float growthMultiplier() {
-        return 1.0F + (this.get(Gene.GROWTH) - MIN_VALUE) * 0.35F;
+        double t = normalized(Gene.GROWTH);
+        return (float) (1.0D + t * t * 8.0D);
     }
 
-    /** Minimum light level the plant needs. Vanilla crops need 9. */
+    /** Minimum light level the plant needs. Vanilla crops need 9; a maxed gene needs none. */
     public int requiredLight() {
-        return Math.max(0, 9 - (this.get(Gene.PHOTOSENSITIVITY) - MIN_VALUE) * 2);
+        return Math.max(0, 9 - (int) Math.round(normalized(Gene.PHOTOSENSITIVITY) * 9.0D));
     }
 
     /** Whether the plant can grow on farmland that has dried out. */
@@ -131,15 +149,36 @@ public record PlantGenes(Map<Gene, Integer> values) {
         return this.get(Gene.THIRST) > MIN_VALUE;
     }
 
-    /** Extra produce dropped on top of the guaranteed one. */
-    public int rollBonusProduce(RandomSource random) {
-        return random.nextInt(this.get(Gene.YIELD));
+    /**
+     * Extra produce dropped on top of the guaranteed one.
+     *
+     * <p>The curve is quadratic, so the reward climbs far faster than the cost of the last few
+     * levels: a maxed Yield turns one wheat into roughly 25 to 30.
+     */
+    public int bonusProduce(RandomSource random) {
+        double t = normalized(Gene.YIELD);
+        double mean = t * t * 26.5D;
+        double spread = mean * 0.08D;
+        return roundStochastically(mean + (random.nextDouble() * 2.0D - 1.0D) * spread, random);
     }
 
     /** Extra seeds dropped on top of whatever the loot table already gave. */
     public int rollBonusSeeds(RandomSource random) {
-        int fertility = this.get(Gene.FERTILITY) - MIN_VALUE;
-        return fertility <= 0 ? 0 : random.nextInt(fertility + 1);
+        double t = normalized(Gene.FERTILITY);
+        return roundStochastically(t * t * 6.0D, random);
+    }
+
+    /**
+     * Rounds up or down in proportion to the fraction, so a mean below one still pays out sometimes
+     * instead of silently truncating to nothing. Without this the first few levels of a quadratic
+     * trait would do literally nothing.
+     */
+    private static int roundStochastically(double value, RandomSource random) {
+        if (value <= 0.0D) {
+            return 0;
+        }
+        int whole = (int) Math.floor(value);
+        return random.nextDouble() < value - whole ? whole + 1 : whole;
     }
 
     /** Probability in [0, 0.9] of resisting an incoming disease roll. */
@@ -163,6 +202,6 @@ public record PlantGenes(Map<Gene, Integer> values) {
     }
 
     private double traitChance(Gene gene) {
-        return Math.min(0.9D, (this.get(gene) - MIN_VALUE) * 0.1D);
+        return normalized(gene) * 0.9D;
     }
 }
