@@ -1,0 +1,11 @@
+{
+  "itemGroup.geneticsandpests": "Genetics and Pests",
+  "item.geneticsandpests.genetic_seed": "Genetic Seed",
+
+  "geneticsandpests.configuration.title": "Genetics and Pests Configs",
+  "geneticsandpests.configuration.section.geneticsandpests.common.toml": "Genetics and Pests Configs",
+  "geneticsandpests.configuration.section.geneticsandpests.common.toml.title": "Genetics and Pests Configs",
+  "geneticsandpests.configuration.diseaseSpreadChance": "Disease Spread Chance",
+  "geneticsandpests.configuration.maxGeneValue": "Max Gene Value",
+  "geneticsandpests.configuration.mutationChance": "Mutation Chance"
+}

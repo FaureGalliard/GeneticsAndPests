@@ -1,12 +1,46 @@
-
-Installation information
+Genetics and Pests
 =======
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+A Minecraft mod for NeoForge 1.21.11, by [fauregalliard](https://github.com/FaureGalliard).
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+| | |
+|---|---|
+| Mod ID | `geneticsandpests` |
+| Minecraft | 1.21.11 |
+| NeoForge | 21.11.45 |
+| Package | `com.fauregalliard.geneticsandpests` |
+
+Concept: A redesign of Minecraft's farming system that introduces seed genetics with
+attributes (NBT data), hostile ecosystems driven by artificial intelligence (winged pests),
+and a disease propagation system based on cellular automata.
+
+Core Mechanics:
+
+Seed Genetics (Data Management): Every seed carries unique attributes (Growth, Yield,
+Resistance) stored as NBT tags. Crops are crossbred to inherit and mutate these stats.
+
+Airborne Pests (State Machine AI): A new entity (Crow) derived from the vanilla model but
+with a rewritten AI (Custom Goals). It scans its surroundings using bounding boxes (AABB)
+to locate and destroy vulnerable crops.
+
+Plant Diseases (Cellular Automata): Plants can contract diseases (which modify their
+BlockState) that spread to adjacent blocks by rolling probabilities on each server tick,
+countered by the plant's Resistance attribute.
+
+Development
+=======
+
+Clone the repository and open it in the IDE of your choice (IntelliJ IDEA or Eclipse are the
+usual recommendations). A JDK 21 installation is required.
+
+Useful Gradle tasks:
+
+| Task | What it does |
+|---|---|
+| `gradlew runClient` | Launches a development Minecraft client with the mod loaded |
+| `gradlew runServer` | Launches a development dedicated server |
+| `gradlew runData` | Runs data generation into `src/generated/resources/` |
+| `gradlew build` | Builds the mod JAR into `build/libs/` |
 
 If at any point you are missing libraries in your IDE, or you've run into problems you can
 run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
