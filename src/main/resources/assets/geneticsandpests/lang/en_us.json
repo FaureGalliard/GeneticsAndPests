@@ -1,11 +1,25 @@
 {
-  "itemGroup.geneticsandpests": "Genetics and Pests",
-  "item.geneticsandpests.genetic_seed": "Genetic Seed",
+  "gene.geneticsandpests.growth": "Growth",
+  "gene.geneticsandpests.yield": "Yield",
+  "gene.geneticsandpests.resistance": "Resistance",
+  "gene.geneticsandpests.photosensitivity": "Photosensitivity",
+  "gene.geneticsandpests.thirst": "Thirst",
+  "gene.geneticsandpests.regrowth": "Regrowth",
+  "gene.geneticsandpests.trampling": "Trampling",
+  "gene.geneticsandpests.camouflage": "Camouflage",
+  "gene.geneticsandpests.fertility": "Fertility",
+
+  "tooltip.geneticsandpests.collapsed": "%s genes · Level %s",
+  "tooltip.geneticsandpests.hold_shift": "Hold Shift",
 
   "geneticsandpests.configuration.title": "Genetics and Pests Configs",
   "geneticsandpests.configuration.section.geneticsandpests.common.toml": "Genetics and Pests Configs",
   "geneticsandpests.configuration.section.geneticsandpests.common.toml.title": "Genetics and Pests Configs",
-  "geneticsandpests.configuration.diseaseSpreadChance": "Disease Spread Chance",
   "geneticsandpests.configuration.maxGeneValue": "Max Gene Value",
-  "geneticsandpests.configuration.mutationChance": "Mutation Chance"
+  "geneticsandpests.configuration.mutationChance": "Mutation Chance",
+  "geneticsandpests.configuration.improvementChance": "Improvement Chance",
+  "geneticsandpests.configuration.diseaseSpreadChance": "Disease Spread Chance",
+  "geneticsandpests.configuration.growthBonusChance": "Growth Bonus Chance",
+  "geneticsandpests.configuration.lowLightGrowthChance": "Low Light Growth Chance",
+  "geneticsandpests.configuration.droughtGrowthChance": "Drought Growth Chance"
 }
