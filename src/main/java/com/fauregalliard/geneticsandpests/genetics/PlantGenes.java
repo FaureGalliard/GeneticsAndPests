@@ -67,7 +67,18 @@ public record PlantGenes(Map<Gene, Integer> values) {
         return true;
     }
 
-    private PlantGenes with(Gene gene, int value) {
+    /** A genome with every gene at the same value, clamped to the configured range. */
+    public static PlantGenes uniform(int value) {
+        Map<Gene, Integer> all = new EnumMap<>(Gene.class);
+        int clamped = Mth.clamp(value, MIN_VALUE, Config.MAX_GENE_VALUE.getAsInt());
+        for (Gene gene : Gene.values()) {
+            all.put(gene, clamped);
+        }
+        return new PlantGenes(all);
+    }
+
+    /** A copy of this genome with one gene changed. */
+    public PlantGenes with(Gene gene, int value) {
         Map<Gene, Integer> copy = new EnumMap<>(this.values);
         copy.put(gene, Mth.clamp(value, MIN_VALUE, Config.MAX_GENE_VALUE.getAsInt()));
         return new PlantGenes(copy);

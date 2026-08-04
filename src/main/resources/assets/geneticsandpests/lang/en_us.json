@@ -12,6 +12,12 @@
   "tooltip.geneticsandpests.collapsed": "%s genes · Level %s",
   "tooltip.geneticsandpests.hold_shift": "Hold Shift",
 
+  "commands.geneticsandpests.set": "Set %s to %s",
+  "commands.geneticsandpests.filled": "Set every gene to %s",
+  "commands.geneticsandpests.cleared": "Removed the genome",
+  "commands.geneticsandpests.unknown_gene": "There is no gene called '%s'",
+  "commands.geneticsandpests.not_a_seed": "Hold a seed that takes part in the genetics system",
+
   "geneticsandpests.configuration.title": "Genetics and Pests Configs",
   "geneticsandpests.configuration.section.geneticsandpests.common.toml": "Genetics and Pests Configs",
   "geneticsandpests.configuration.section.geneticsandpests.common.toml.title": "Genetics and Pests Configs",
