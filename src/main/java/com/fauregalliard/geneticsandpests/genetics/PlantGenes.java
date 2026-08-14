@@ -1,8 +1,10 @@
 package com.fauregalliard.geneticsandpests.genetics;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.mojang.serialization.Codec;
@@ -120,6 +122,24 @@ public record PlantGenes(Map<Gene, Integer> values) {
         int value = this.get(gene);
         double odds = Math.pow(Config.IMPROVEMENT_FALLOFF.getAsDouble(), value - MIN_VALUE);
         return random.nextDouble() < odds ? this.with(gene, value + 1) : this;
+    }
+
+    /**
+     * Drops one developed gene by a point. Used only where the player had a hand in it — an unripe
+     * harvest, a field left dark or dry — never as a random tax on a good one.
+     */
+    public PlantGenes degraded(RandomSource random) {
+        List<Gene> developed = new ArrayList<>();
+        for (Gene gene : Gene.values()) {
+            if (this.get(gene) > MIN_VALUE) {
+                developed.add(gene);
+            }
+        }
+        if (developed.isEmpty()) {
+            return this;
+        }
+        Gene gene = developed.get(random.nextInt(developed.size()));
+        return this.with(gene, this.get(gene) - 1);
     }
 
     // --- Trait readings -------------------------------------------------------------------

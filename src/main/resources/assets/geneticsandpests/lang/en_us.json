@@ -9,6 +9,13 @@
   "gene.geneticsandpests.camouflage": "Camouflage",
   "gene.geneticsandpests.fertility": "Fertility",
 
+  "disease.geneticsandpests.rust": "Rust",
+  "disease.geneticsandpests.ergot": "Ergot",
+  "disease.geneticsandpests.smut": "Smut",
+  "disease.geneticsandpests.blight": "Blight",
+
+  "tooltip.geneticsandpests.infected": "Infected: %s",
+  "tooltip.geneticsandpests.tainted": "Tainted",
   "tooltip.geneticsandpests.collapsed": "%s genes · Level %s",
   "tooltip.geneticsandpests.hold_shift": "Hold Shift",
 
@@ -26,6 +33,11 @@
   "geneticsandpests.configuration.improvementChance": "Improvement Chance",
   "geneticsandpests.configuration.improvementFalloff": "Improvement Falloff",
   "geneticsandpests.configuration.diseaseSpreadChance": "Disease Spread Chance",
+  "geneticsandpests.configuration.outbreakChance": "Outbreak Chance",
+  "geneticsandpests.configuration.monocultureThreshold": "Monoculture Threshold",
+  "geneticsandpests.configuration.recoveryChance": "Recovery Chance",
+  "geneticsandpests.configuration.blightLethalPasses": "Blight Lethal Passes",
+  "geneticsandpests.configuration.poorHarvestLossChance": "Poor Harvest Loss Chance",
   "geneticsandpests.configuration.growthBonusChance": "Growth Bonus Chance",
   "geneticsandpests.configuration.lowLightGrowthChance": "Low Light Growth Chance",
   "geneticsandpests.configuration.droughtGrowthChance": "Drought Growth Chance"

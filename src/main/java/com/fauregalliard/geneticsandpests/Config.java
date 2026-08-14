@@ -29,8 +29,36 @@ public class Config {
             .defineInRange("improvementFalloff", 0.90D, 0.01D, 1.0D);
 
     public static final ModConfigSpec.DoubleValue DISEASE_SPREAD_CHANCE = BUILDER
-            .comment("Base probability, per disease pass, that a sick plant infects an adjacent one")
+            .comment("Base probability, per disease pass, that a sick plant infects an adjacent one.",
+                    "Each disease scales this by its own contagion.")
             .defineInRange("diseaseSpreadChance", 0.05D, 0.0D, 1.0D);
+
+    public static final ModConfigSpec.DoubleValue OUTBREAK_CHANCE = BUILDER
+            .comment("Probability, per disease pass, that a healthy plant falls ill on its own.",
+                    "Multiplied by how far past the monoculture threshold its surroundings are,",
+                    "so isolated plants are effectively safe and packed fields are not.")
+            .defineInRange("outbreakChance", 0.0004D, 0.0D, 1.0D);
+
+    public static final ModConfigSpec.IntValue MONOCULTURE_THRESHOLD = BUILDER
+            .comment("How many of the eight surrounding blocks may be the same plant before",
+                    "outbreaks begin. Lower values punish dense fields harder.")
+            .defineInRange("monocultureThreshold", 5, 0, 8);
+
+    public static final ModConfigSpec.DoubleValue RECOVERY_CHANCE = BUILDER
+            .comment("Base probability, per disease pass, that a sick plant shakes off a curable disease.",
+                    "Resistance multiplies this, and recovery is what triggers the plague mutation.")
+            .defineInRange("recoveryChance", 0.01D, 0.0D, 1.0D);
+
+    public static final ModConfigSpec.IntValue BLIGHT_LETHAL_PASSES = BUILDER
+            .comment("How many passes (roughly seconds) a plant survives Blight before it dies.",
+                    "Blight has no cure, so this is how long you have to tear out the infection.")
+            .defineInRange("blightLethalPasses", 90, 1, 100000);
+
+    public static final ModConfigSpec.DoubleValue POOR_HARVEST_LOSS_CHANCE = BUILDER
+            .comment("Probability that a seed loses a gene point when the plant was harvested badly:",
+                    "picked unripe, grown too dark for its Photosensitivity, or left on dry soil",
+                    "without the Thirst to handle it. A well-kept plant never loses anything.")
+            .defineInRange("poorHarvestLossChance", 0.25D, 0.0D, 1.0D);
 
     public static final ModConfigSpec.DoubleValue GROWTH_BONUS_CHANCE = BUILDER
             .comment("Chance per second of an extra growth stage, per point of Growth above the baseline.",

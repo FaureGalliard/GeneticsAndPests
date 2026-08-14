@@ -1,10 +1,14 @@
 package com.fauregalliard.geneticsandpests.registry;
 
+import com.mojang.serialization.Codec;
+
 import com.fauregalliard.geneticsandpests.GeneticsAndPests;
+import com.fauregalliard.geneticsandpests.genetics.Disease;
 import com.fauregalliard.geneticsandpests.genetics.PlantGenes;
 
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -17,6 +21,20 @@ public final class ModDataComponents {
             DATA_COMPONENTS.register("plant_genes", () -> DataComponentType.<PlantGenes>builder()
                     .persistent(PlantGenes.CODEC)
                     .networkSynchronized(PlantGenes.STREAM_CODEC)
+                    .build());
+
+    /** Rides on harvested seeds so Smut can travel in your inventory instead of through the soil. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Disease>> SEED_DISEASE =
+            DATA_COMPONENTS.register("seed_disease", () -> DataComponentType.<Disease>builder()
+                    .persistent(Disease.CODEC)
+                    .networkSynchronized(Disease.STREAM_CODEC)
+                    .build());
+
+    /** Marks produce grown on an Ergot-infected plant: it looks ordinary and is not. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> TAINTED =
+            DATA_COMPONENTS.register("tainted", () -> DataComponentType.<Boolean>builder()
+                    .persistent(Codec.BOOL)
+                    .networkSynchronized(ByteBufCodecs.BOOL)
                     .build());
 
     private ModDataComponents() {}
