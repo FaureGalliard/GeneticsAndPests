@@ -1,5 +1,9 @@
 package com.fauregalliard.geneticsandpests;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 // Common config for the mod. Values here are read on both the client and the dedicated server.
@@ -74,4 +78,28 @@ public class Config {
             .defineInRange("droughtGrowthChance", 0.02D, 0.0D, 1.0D);
 
     static final ModConfigSpec SPEC = BUILDER.build();
+
+    /**
+     * Every tunable, by the same name it has in the config file, so the in-game command can list
+     * and edit them without a second hand-written copy of this list drifting out of date.
+     */
+    public static final Map<String, ModConfigSpec.ConfigValue<?>> ENTRIES = entries();
+
+    private static Map<String, ModConfigSpec.ConfigValue<?>> entries() {
+        Map<String, ModConfigSpec.ConfigValue<?>> map = new LinkedHashMap<>();
+        map.put("maxGeneValue", MAX_GENE_VALUE);
+        map.put("inheritanceDominance", INHERITANCE_DOMINANCE);
+        map.put("improvementChance", IMPROVEMENT_CHANCE);
+        map.put("improvementFalloff", IMPROVEMENT_FALLOFF);
+        map.put("poorHarvestLossChance", POOR_HARVEST_LOSS_CHANCE);
+        map.put("growthBonusChance", GROWTH_BONUS_CHANCE);
+        map.put("lowLightGrowthChance", LOW_LIGHT_GROWTH_CHANCE);
+        map.put("droughtGrowthChance", DROUGHT_GROWTH_CHANCE);
+        map.put("diseaseSpreadChance", DISEASE_SPREAD_CHANCE);
+        map.put("outbreakChance", OUTBREAK_CHANCE);
+        map.put("monocultureThreshold", MONOCULTURE_THRESHOLD);
+        map.put("recoveryChance", RECOVERY_CHANCE);
+        map.put("blightLethalPasses", BLIGHT_LETHAL_PASSES);
+        return Collections.unmodifiableMap(map);
+    }
 }

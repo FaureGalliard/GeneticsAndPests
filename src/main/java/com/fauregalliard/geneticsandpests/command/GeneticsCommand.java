@@ -2,6 +2,7 @@ package com.fauregalliard.geneticsandpests.command;
 
 import java.util.Arrays;
 
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -23,7 +24,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Editing tools for the genome of the seed in your main hand, so breeding can be tested without
@@ -36,6 +39,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 public final class GeneticsCommand {
     private static final String GENE_ARG = "gene";
     private static final String VALUE_ARG = "value";
+    private static final String KEY_ARG = "key";
 
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
@@ -54,9 +58,78 @@ public final class GeneticsCommand {
                                 .then(Commands.argument(VALUE_ARG, IntegerArgumentType.integer(PlantGenes.MIN_VALUE))
                                         .executes(GeneticsCommand::set))));
 
+        LiteralArgumentBuilder<CommandSourceStack> config = Commands.literal("config")
+                .then(Commands.literal("list")
+                        .executes(GeneticsCommand::listConfig))
+                .then(Commands.literal("set")
+                        .then(Commands.argument(KEY_ARG, StringArgumentType.word())
+                                .suggests((context, builder) ->
+                                        SharedSuggestionProvider.suggest(Config.ENTRIES.keySet(), builder))
+                                .then(Commands.argument(VALUE_ARG, DoubleArgumentType.doubleArg())
+                                        .executes(GeneticsCommand::setConfig))));
+
         event.getDispatcher().register(Commands.literal(GeneticsAndPests.MODID)
                 .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-                .then(genes));
+                .then(genes)
+                .then(config));
+    }
+
+    /**
+     * Prints every tunable and its current value. Balancing this mod means watching a number play
+     * out over many harvests, so being able to read and change them without leaving the world is
+     * worth more than a tidy config screen.
+     */
+    private static int listConfig(CommandContext<CommandSourceStack> context) {
+        Config.ENTRIES.forEach((key, value) -> context.getSource().sendSuccess(
+                () -> Component.literal(key + " = " + value.get()), false));
+        return Config.ENTRIES.size();
+    }
+
+    private static int setConfig(CommandContext<CommandSourceStack> context) {
+        String key = StringArgumentType.getString(context, KEY_ARG);
+        ModConfigSpec.ConfigValue<?> entry = Config.ENTRIES.get(key);
+
+        if (entry == null) {
+            context.getSource().sendFailure(
+                    Component.translatable("commands.geneticsandpests.unknown_setting", key));
+            return 0;
+        }
+
+        double requested = DoubleArgumentType.getDouble(context, VALUE_ARG);
+        Object applied = apply(entry, requested);
+        if (applied == null) {
+            context.getSource().sendFailure(
+                    Component.translatable("commands.geneticsandpests.bad_value", key));
+            return 0;
+        }
+
+        // Written straight to the config file, so the value survives a restart and can be inspected
+        // outside the game.
+        entry.save();
+        context.getSource().sendSuccess(
+                () -> Component.translatable("commands.geneticsandpests.setting_set", key, String.valueOf(applied)),
+                false);
+        return 1;
+    }
+
+    /** Applies a value through whichever typed setter the entry actually has. */
+    @Nullable
+    private static Object apply(ModConfigSpec.ConfigValue<?> entry, double requested) {
+        try {
+            if (entry instanceof ModConfigSpec.IntValue intValue) {
+                int rounded = (int) Math.round(requested);
+                intValue.set(rounded);
+                return rounded;
+            }
+            if (entry instanceof ModConfigSpec.DoubleValue doubleValue) {
+                doubleValue.set(requested);
+                return requested;
+            }
+        } catch (IllegalArgumentException outOfRange) {
+            // The spec rejects values outside the range it was declared with.
+            return null;
+        }
+        return null;
     }
 
     private static int get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

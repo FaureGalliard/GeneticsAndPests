@@ -19,7 +19,14 @@
   "tooltip.geneticsandpests.collapsed": "%s genes · Level %s",
   "tooltip.geneticsandpests.hold_shift": "Hold Shift",
 
+  "item.geneticsandpests.ash": "Ash",
+  "item.geneticsandpests.lime": "Lime",
+  "item.geneticsandpests.brine": "Brine",
+
   "commands.geneticsandpests.set": "Set %s to %s",
+  "commands.geneticsandpests.setting_set": "%s = %s",
+  "commands.geneticsandpests.unknown_setting": "There is no setting called '%s'",
+  "commands.geneticsandpests.bad_value": "That value is outside the range allowed for '%s'",
   "commands.geneticsandpests.filled": "Set every gene to %s",
   "commands.geneticsandpests.cleared": "Removed the genome",
   "commands.geneticsandpests.unknown_gene": "There is no gene called '%s'",
