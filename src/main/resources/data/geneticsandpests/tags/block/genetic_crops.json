@@ -5,6 +5,11 @@
     "minecraft:carrots",
     "minecraft:potatoes",
     "minecraft:beetroots",
-    "minecraft:torchflower_crop"
+    "minecraft:torchflower_crop",
+    "minecraft:cocoa",
+    "minecraft:nether_wart",
+    "minecraft:sweet_berry_bush",
+    "minecraft:melon_stem",
+    "minecraft:pumpkin_stem"
   ]
 }
