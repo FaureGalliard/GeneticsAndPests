@@ -17,6 +17,9 @@ public final class ModAttachments {
             ATTACHMENT_TYPES.register("crop_genes", () -> AttachmentType
                     .builder(CropGenes::new)
                     .serialize(CropGenes.CODEC, genes -> !genes.isEmpty())
+                    // Synced so the client can name a plant's disease in the debug screen and to
+                    // HUD mods; without this the infection exists only on the server.
+                    .sync(CropGenes.STREAM_CODEC)
                     .build());
 
     private ModAttachments() {}

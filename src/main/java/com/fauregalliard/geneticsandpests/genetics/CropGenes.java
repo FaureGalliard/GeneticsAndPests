@@ -10,7 +10,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -24,6 +27,24 @@ public class CropGenes {
     public static final MapCodec<CropGenes> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             Entry.CODEC.listOf().fieldOf("crops").forGetter(CropGenes::toEntries)
     ).apply(instance, CropGenes::fromEntries));
+
+    /** Sent to clients so the debug screen and HUD mods can name what is wrong with a plant. */
+    public static final StreamCodec<ByteBuf, CropGenes> STREAM_CODEC = StreamCodec.of(
+            (buffer, value) -> {
+                ByteBufCodecs.VAR_INT.encode(buffer, value.plants.size());
+                value.plants.forEach((pos, state) -> {
+                    buffer.writeLong(pos.asLong());
+                    PlantState.STREAM_CODEC.encode(buffer, state);
+                });
+            },
+            buffer -> {
+                int count = ByteBufCodecs.VAR_INT.decode(buffer);
+                CropGenes result = new CropGenes();
+                for (int i = 0; i < count; i++) {
+                    result.put(BlockPos.of(buffer.readLong()), PlantState.STREAM_CODEC.decode(buffer));
+                }
+                return result;
+            });
 
     private final Map<BlockPos, PlantState> plants = new HashMap<>();
 

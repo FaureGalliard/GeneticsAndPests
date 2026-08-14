@@ -6,6 +6,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -26,6 +29,25 @@ public record PlantState(PlantGenes genes, Optional<Disease> disease, int infect
     ).apply(instance, PlantState::new));
 
     public static final Codec<PlantState> CODEC = MAP_CODEC.codec();
+
+    /** Written by hand rather than composed, so the optional disease costs a single byte. */
+    public static final StreamCodec<ByteBuf, PlantState> STREAM_CODEC = StreamCodec.of(
+            (buffer, state) -> {
+                PlantGenes.STREAM_CODEC.encode(buffer, state.genes());
+                Disease sickness = state.diseaseOrNull();
+                buffer.writeBoolean(sickness != null);
+                if (sickness != null) {
+                    Disease.STREAM_CODEC.encode(buffer, sickness);
+                }
+                ByteBufCodecs.VAR_INT.encode(buffer, state.infectedFor());
+            },
+            buffer -> {
+                PlantGenes genes = PlantGenes.STREAM_CODEC.decode(buffer);
+                Optional<Disease> sickness = buffer.readBoolean()
+                        ? Optional.of(Disease.STREAM_CODEC.decode(buffer))
+                        : Optional.empty();
+                return new PlantState(genes, sickness, ByteBufCodecs.VAR_INT.decode(buffer));
+            });
 
     public static PlantState healthy(PlantGenes genes) {
         return new PlantState(genes, Optional.empty(), 0);
