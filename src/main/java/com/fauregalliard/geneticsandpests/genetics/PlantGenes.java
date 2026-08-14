@@ -150,22 +150,32 @@ public record PlantGenes(Map<Gene, Integer> values) {
     }
 
     /**
-     * Extra produce dropped on top of the guaranteed one.
-     *
-     * <p>The curve is quadratic, so the reward climbs far faster than the cost of the last few
-     * levels: a maxed Yield turns one wheat into roughly 25 to 30.
+     * Extra produce dropped on top of the guaranteed one. A maxed Yield turns one wheat into
+     * roughly 25 to 30.
      */
     public int bonusProduce(RandomSource random) {
-        double t = normalized(Gene.YIELD);
-        double mean = t * t * 26.5D;
+        double mean = payoff(Gene.YIELD, 13.0D, 13.5D);
         double spread = mean * 0.08D;
         return roundStochastically(mean + (random.nextDouble() * 2.0D - 1.0D) * spread, random);
     }
 
     /** Extra seeds dropped on top of whatever the loot table already gave. */
     public int rollBonusSeeds(RandomSource random) {
-        double t = normalized(Gene.FERTILITY);
-        return roundStochastically(t * t * 6.0D, random);
+        return roundStochastically(payoff(Gene.FERTILITY, 3.0D, 3.0D), random);
+    }
+
+    /**
+     * The reward curve every scaling trait shares: half of it grows evenly with the gene and half
+     * accelerates.
+     *
+     * <p>A purely quadratic curve looked right on paper and played badly — the first third of the
+     * levels were indistinguishable from no levels at all. The linear half makes every single level
+     * show up in the harvest, and the quadratic half keeps the expensive final levels worth their
+     * price. {@code linear + accelerating} is the total at a maxed gene.
+     */
+    private double payoff(Gene gene, double linear, double accelerating) {
+        double t = normalized(gene);
+        return t * linear + t * t * accelerating;
     }
 
     /**
