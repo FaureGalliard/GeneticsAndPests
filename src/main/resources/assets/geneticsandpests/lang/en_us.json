@@ -19,6 +19,8 @@
   "tooltip.geneticsandpests.collapsed": "%s genes · Level %s",
   "tooltip.geneticsandpests.hold_shift": "Hold Shift",
 
+  "itemGroup.geneticsandpests": "Genetics and Pests",
+
   "item.geneticsandpests.ash": "Ash",
   "item.geneticsandpests.lime": "Lime",
   "item.geneticsandpests.brine": "Brine",

@@ -3,9 +3,7 @@ package com.fauregalliard.geneticsandpests.registry;
 import com.fauregalliard.geneticsandpests.GeneticsAndPests;
 import com.fauregalliard.geneticsandpests.content.BrineItem;
 
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -24,15 +22,6 @@ public final class ModItems {
 
     /** Salt water for soaking seed, which is the only thing that clears Smut. */
     public static final DeferredItem<BrineItem> BRINE = ITEMS.registerItem("brine", BrineItem::new, Item.Properties::new);
-
-    /** Remedies belong beside the other crafting ingredients, not in a tab of their own. */
-    public static void addToVanillaTabs(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
-            event.accept(ASH.get());
-            event.accept(LIME.get());
-            event.accept(BRINE.get());
-        }
-    }
 
     private ModItems() {}
 }

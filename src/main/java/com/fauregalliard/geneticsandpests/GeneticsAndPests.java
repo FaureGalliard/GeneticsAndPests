@@ -6,6 +6,7 @@ import com.mojang.logging.LogUtils;
 
 import com.fauregalliard.geneticsandpests.registry.ModAttachments;
 import com.fauregalliard.geneticsandpests.registry.ModDataComponents;
+import com.fauregalliard.geneticsandpests.registry.ModCreativeTabs;
 import com.fauregalliard.geneticsandpests.registry.ModItems;
 
 import net.neoforged.bus.api.IEventBus;
@@ -26,9 +27,7 @@ public class GeneticsAndPests {
         ModDataComponents.DATA_COMPONENTS.register(modEventBus);
         ModAttachments.ATTACHMENT_TYPES.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
-
-        // Remedies live in the vanilla ingredient tab rather than a tab of the mod's own
-        modEventBus.addListener(ModItems::addToVanillaTabs);
+        ModCreativeTabs.CREATIVE_MODE_TABS.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
