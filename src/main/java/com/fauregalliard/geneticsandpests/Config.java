@@ -45,8 +45,9 @@ public class Config {
 
     public static final ModConfigSpec.IntValue MONOCULTURE_THRESHOLD = BUILDER
             .comment("How many of the eight surrounding blocks may be the same plant before",
-                    "outbreaks begin. Lower values punish dense fields harder.")
-            .defineInRange("monocultureThreshold", 5, 0, 8);
+                    "outbreaks begin. At the default of 2 a single row stays safe and every plant",
+                    "in a 3x3 patch is already at risk, the corners least and the middle most.")
+            .defineInRange("monocultureThreshold", 2, 0, 8);
 
     public static final ModConfigSpec.DoubleValue RECOVERY_CHANCE = BUILDER
             .comment("Base probability, per disease pass, that a sick plant shakes off a curable disease.",

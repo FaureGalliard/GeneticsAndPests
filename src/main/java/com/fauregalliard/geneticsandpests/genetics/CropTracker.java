@@ -11,8 +11,10 @@ import com.fauregalliard.geneticsandpests.registry.ModTags;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -43,6 +45,11 @@ public final class CropTracker {
 
     /** The eight neighbours a monoculture is measured across. */
     private static final int MONOCULTURE_SAMPLE = 8;
+
+    /** How many blocks near each player are checked for a fresh outbreak per pass. */
+    private static final int SAMPLES_PER_PLAYER = 48;
+    private static final int SCAN_RADIUS = 12;
+    private static final int SCAN_HEIGHT = 3;
 
     private static final Map<ResourceKey<Level>, Set<ChunkPos>> ACTIVE_CHUNKS = new ConcurrentHashMap<>();
 
@@ -93,6 +100,8 @@ public final class CropTracker {
             return;
         }
 
+        scanForOutbreaks(level);
+
         Set<ChunkPos> chunks = ACTIVE_CHUNKS.get(level.dimension());
         if (chunks == null || chunks.isEmpty()) {
             return;
@@ -133,7 +142,6 @@ public final class CropTracker {
             tickDisease(level, chunk, stored, pos, plant);
         } else {
             tickGrowth(level, pos, plant.genes());
-            rollOutbreak(level, chunk, stored, pos, plant);
         }
     }
 
@@ -177,23 +185,52 @@ public final class CropTracker {
     // --- Disease --------------------------------------------------------------------------
 
     /**
-     * Rolls for a fresh outbreak. The odds climb with how much of the same plant is packed around
-     * this one, so a scattered garden is nearly safe and a hundred-block wheat field is a matter of
-     * time. Crop rotation and spacing become real decisions rather than decoration.
+     * Looks for fresh outbreaks among the plants around each player.
+     *
+     * <p>This deliberately does not walk the tracked-plant list. Only plants with a stored genome
+     * are in that list, so rolling outbreaks there meant an ordinary vanilla farm could never fall
+     * ill at all — disease would have been a punishment reserved for players who engage with
+     * breeding, which is backwards. Sampling the world instead reaches every crop, tracked or not.
      */
-    private static void rollOutbreak(ServerLevel level, LevelChunk chunk, CropGenes stored,
-                                     BlockPos pos, PlantState plant) {
-        int threshold = Config.MONOCULTURE_THRESHOLD.getAsInt();
-        int crowding = countIdenticalNeighbours(level, pos) - threshold;
-        if (crowding <= 0) {
+    private static void scanForOutbreaks(ServerLevel level) {
+        double outbreak = Config.OUTBREAK_CHANCE.getAsDouble();
+        if (outbreak <= 0.0D) {
             return;
         }
 
-        double chance = Config.OUTBREAK_CHANCE.getAsDouble() * crowding
-                * (1.0D - plant.genes().diseaseResistance());
-        if (level.random.nextDouble() < chance) {
-            stored.put(pos, plant.infectedWith(rollOutbreakDisease(level.random)));
-            chunk.markUnsaved();
+        RandomSource random = level.random;
+        int threshold = Config.MONOCULTURE_THRESHOLD.getAsInt();
+
+        for (ServerPlayer player : level.players()) {
+            BlockPos origin = player.blockPosition();
+            for (int sample = 0; sample < SAMPLES_PER_PLAYER; sample++) {
+                BlockPos pos = origin.offset(
+                        random.nextInt(SCAN_RADIUS * 2 + 1) - SCAN_RADIUS,
+                        random.nextInt(SCAN_HEIGHT * 2 + 1) - SCAN_HEIGHT,
+                        random.nextInt(SCAN_RADIUS * 2 + 1) - SCAN_RADIUS);
+
+                if (!level.getBlockState(pos).is(ModTags.GENETIC_CROPS)) {
+                    continue;
+                }
+
+                PlantState existing = GeneStorage.getState(level, pos);
+                if (existing != null && existing.isDiseased()) {
+                    continue;
+                }
+
+                // The odds climb with how much of the same plant is packed around this one, so a
+                // scattered garden is nearly safe and a solid field is a matter of time.
+                int crowding = countIdenticalNeighbours(level, pos) - threshold;
+                if (crowding <= 0) {
+                    continue;
+                }
+
+                PlantGenes genes = existing == null ? PlantGenes.DEFAULT : existing.genes();
+                double chance = outbreak * crowding * (1.0D - genes.diseaseResistance());
+                if (random.nextDouble() < chance) {
+                    GeneStorage.infect(level, pos, rollOutbreakDisease(random));
+                }
+            }
         }
     }
 
@@ -310,11 +347,33 @@ public final class CropTracker {
         }
     }
 
-    /** Particles are the whole visual: no per-plant texture, so any crop from any mod shows it. */
+    /**
+     * The whole visual, and it uses no texture of its own on purpose: anything drawn per plant type
+     * would have to be redrawn for every crop of every mod.
+     *
+     * <p>Two layers. Spores drift around the plant to say what the illness is up close, and a patch
+     * of coloured dust sits on whatever the plant is rooted in — farmland under wheat, the jungle
+     * log behind cocoa — so an infection reads as a stain on the ground from across the field.
+     */
     private static void showSymptoms(ServerLevel level, BlockPos pos, Disease disease) {
         level.sendParticles(disease.particle(),
                 pos.getX() + 0.5D, pos.getY() + 0.4D, pos.getZ() + 0.5D,
                 3, 0.3D, 0.2D, 0.3D, 0.0D);
+
+        Direction support = PlantGrowth.supportDirection(level.getBlockState(pos));
+        DustParticleOptions stain = new DustParticleOptions(disease.colour(), 1.4F);
+
+        // Pushed almost to the face of the supporting block, and flattened along that axis so the
+        // dust lies on the surface instead of hanging in the air.
+        level.sendParticles(stain,
+                pos.getX() + 0.5D + support.getStepX() * 0.45D,
+                pos.getY() + 0.5D + support.getStepY() * 0.45D,
+                pos.getZ() + 0.5D + support.getStepZ() * 0.45D,
+                5,
+                support.getStepX() == 0 ? 0.32D : 0.0D,
+                support.getStepY() == 0 ? 0.32D : 0.0D,
+                support.getStepZ() == 0 ? 0.32D : 0.0D,
+                0.0D);
     }
 
     private CropTracker() {}
