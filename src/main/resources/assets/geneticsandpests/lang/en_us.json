@@ -8,25 +8,19 @@
   "gene.geneticsandpests.trampling": "Trampling",
   "gene.geneticsandpests.camouflage": "Camouflage",
   "gene.geneticsandpests.fertility": "Fertility",
-
   "disease.geneticsandpests.rust": "Rust",
   "disease.geneticsandpests.ergot": "Ergot",
   "disease.geneticsandpests.smut": "Smut",
   "disease.geneticsandpests.blight": "Blight",
-
   "tooltip.geneticsandpests.infected": "Infected: %s",
   "tooltip.geneticsandpests.tainted": "Tainted",
   "tooltip.geneticsandpests.collapsed": "%s genes · Level %s",
   "tooltip.geneticsandpests.hold_shift": "Hold Shift",
-
   "itemGroup.geneticsandpests": "Genetics and Pests",
-
   "config.jade.plugin_geneticsandpests.plant": "Plant Genetics",
-
   "item.geneticsandpests.ash": "Ash",
   "item.geneticsandpests.lime": "Lime",
   "item.geneticsandpests.brine": "Brine",
-
   "commands.geneticsandpests.set": "Set %s to %s",
   "commands.geneticsandpests.setting_set": "%s = %s",
   "commands.geneticsandpests.unknown_setting": "There is no setting called '%s'",
@@ -38,7 +32,6 @@
   "commands.geneticsandpests.unknown_disease": "There is no disease called '%s'",
   "commands.geneticsandpests.no_target": "Look at a crop first",
   "commands.geneticsandpests.plants_affected": "Affected %s plants",
-
   "geneticsandpests.configuration.title": "Genetics and Pests Configs",
   "geneticsandpests.configuration.section.geneticsandpests.common.toml": "Genetics and Pests Configs",
   "geneticsandpests.configuration.section.geneticsandpests.common.toml.title": "Genetics and Pests Configs",
@@ -54,5 +47,8 @@
   "geneticsandpests.configuration.poorHarvestLossChance": "Poor Harvest Loss Chance",
   "geneticsandpests.configuration.growthBonusChance": "Growth Bonus Chance",
   "geneticsandpests.configuration.lowLightGrowthChance": "Low Light Growth Chance",
-  "geneticsandpests.configuration.droughtGrowthChance": "Drought Growth Chance"
+  "geneticsandpests.configuration.droughtGrowthChance": "Drought Growth Chance",
+  "item.geneticsandpests.scion": "Scion",
+  "block.geneticsandpests.grafting_table": "Grafting Table",
+  "container.geneticsandpests.grafting_table": "Grafting Table"
 }

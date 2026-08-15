@@ -1,6 +1,7 @@
 package com.fauregalliard.geneticsandpests.data;
 
 import com.fauregalliard.geneticsandpests.GeneticsAndPests;
+import com.fauregalliard.geneticsandpests.registry.ModBlocks;
 import com.fauregalliard.geneticsandpests.registry.ModItems;
 
 import net.minecraft.client.data.models.BlockModelGenerators;
@@ -25,5 +26,8 @@ public class ModModelProvider extends ModelProvider {
         itemModels.generateFlatItem(ModItems.ASH.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ModItems.LIME.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ModItems.BRINE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(ModItems.SCION.get(), ModelTemplates.FLAT_ITEM);
+
+        blockModels.createTrivialCube(ModBlocks.GRAFTING_TABLE.get());
     }
 }

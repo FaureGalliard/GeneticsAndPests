@@ -2,6 +2,7 @@ package com.fauregalliard.geneticsandpests.data;
 
 import java.util.concurrent.CompletableFuture;
 
+import com.fauregalliard.geneticsandpests.registry.ModBlocks;
 import com.fauregalliard.geneticsandpests.registry.ModItems;
 
 import net.minecraft.core.HolderLookup;
@@ -39,6 +40,16 @@ public class ModRecipeProvider extends RecipeProvider {
                 .requires(Items.POTION)
                 .requires(Items.DRIED_KELP, 2)
                 .unlockedBy("has_dried_kelp", this.has(Items.DRIED_KELP))
+                .save(this.output);
+
+        // A workbench, a blade and twine: the whole of medieval grafting equipment.
+        this.shaped(RecipeCategory.DECORATIONS, ModBlocks.GRAFTING_TABLE.get())
+                .define('S', Items.SHEARS)
+                .define('C', Items.CRAFTING_TABLE)
+                .define('P', ItemTags.PLANKS)
+                .pattern(" S ")
+                .pattern("PCP")
+                .unlockedBy("has_shears", this.has(Items.SHEARS))
                 .save(this.output);
     }
 

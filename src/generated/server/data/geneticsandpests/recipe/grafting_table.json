@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:crafting_table",
+    "P": "#minecraft:planks",
+    "S": "minecraft:shears"
+  },
+  "pattern": [
+    " S ",
+    "PCP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "geneticsandpests:grafting_table"
+  }
+}
