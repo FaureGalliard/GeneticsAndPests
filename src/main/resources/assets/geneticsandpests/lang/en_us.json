@@ -21,6 +21,8 @@
 
   "itemGroup.geneticsandpests": "Genetics and Pests",
 
+  "config.jade.plugin_geneticsandpests.plant": "Plant Genetics",
+
   "item.geneticsandpests.ash": "Ash",
   "item.geneticsandpests.lime": "Lime",
   "item.geneticsandpests.brine": "Brine",

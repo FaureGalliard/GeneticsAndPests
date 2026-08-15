@@ -133,6 +133,12 @@ dependencies {
     // Example mod dependency using a file as dependency
     // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
 
+    // Jade is an optional dependency: its API is needed to compile the HUD integration, and the
+    // full jar is put on the dev runtime only so the integration can actually be tried out.
+    // localRuntime rather than runtimeOnly so the published mod never declares a hard dependency.
+    compileOnly files("libs/${jade_jar}")
+    localRuntime files("libs/${jade_jar}")
+
     // Example project dependency using a sister or child project:
     // implementation project(":myproject")
 

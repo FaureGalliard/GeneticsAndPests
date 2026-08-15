@@ -38,3 +38,7 @@ run/
 **/src/generated/**/.cache/
 repo/
 !**/src/**/repo/
+
+# Third-party mod jars used only for optional compile/runtime integration.
+# See jade_jar in gradle.properties for where to get them.
+libs/

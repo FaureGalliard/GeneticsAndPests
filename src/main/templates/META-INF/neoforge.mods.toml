@@ -73,6 +73,14 @@ ${mod_description}
     # Side this dependency is applied on - BOTH, CLIENT, or SERVER
     side="BOTH"
 
+# Jade is optional: the HUD integration is only loaded when Jade is installed.
+[[dependencies.${mod_id}]]
+    modId="jade"
+    type="optional"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="CLIENT"
+
 # Here's another dependency
 [[dependencies.${mod_id}]]
     modId="minecraft"
