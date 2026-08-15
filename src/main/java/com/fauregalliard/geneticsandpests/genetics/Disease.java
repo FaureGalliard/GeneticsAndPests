@@ -125,6 +125,11 @@ public enum Disease implements StringRepresentable {
                 Identifier.fromNamespaceAndPath(GeneticsAndPests.MODID, "cures/" + this.id));
     }
 
+    /** The stain drawn on whatever the plant is rooted in. One texture per disease, not per plant. */
+    public Identifier stainTexture() {
+        return Identifier.fromNamespaceAndPath(GeneticsAndPests.MODID, "textures/effect/" + this.id + ".png");
+    }
+
     public String translationKey() {
         return "disease.geneticsandpests." + this.id;
     }
