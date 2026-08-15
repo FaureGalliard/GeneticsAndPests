@@ -32,11 +32,19 @@ public class WildSeedTrade implements VillagerTrades.ItemListing {
     private final int emeralds;
     private final int maxUses;
     private final int xp;
+    private final int maxTraits;
+    private final int ceiling;
 
-    public WildSeedTrade(int emeralds, int maxUses, int xp) {
+    /**
+     * @param maxTraits how many genes the seed may have raised
+     * @param ceiling   how high those genes may go
+     */
+    public WildSeedTrade(int emeralds, int maxUses, int xp, int maxTraits, int ceiling) {
         this.emeralds = emeralds;
         this.maxUses = maxUses;
         this.xp = xp;
+        this.maxTraits = maxTraits;
+        this.ceiling = ceiling;
     }
 
     @Nullable
@@ -51,20 +59,20 @@ public class WildSeedTrade implements VillagerTrades.ItemListing {
         }
 
         ItemStack seed = new ItemStack(seeds.get(random.nextInt(seeds.size())).value());
-        seed.set(ModDataComponents.PLANT_GENES.get(), roll(random));
+        seed.set(ModDataComponents.PLANT_GENES.get(), roll(random, this.maxTraits, this.ceiling));
 
         return new MerchantOffer(new ItemCost(Items.EMERALD, this.emeralds), seed,
                 this.maxUses, this.xp, 0.05F);
     }
 
-    private static PlantGenes roll(RandomSource random) {
-        int ceiling = Math.max(PlantGenes.MIN_VALUE + 1, Config.WILD_STRAIN_CEILING.getAsInt());
+    private static PlantGenes roll(RandomSource random, int maxTraits, int ceiling) {
+        int top = Math.max(PlantGenes.MIN_VALUE + 1, Math.min(ceiling, Config.MAX_GENE_VALUE.getAsInt()));
         Map<Gene, Integer> genes = new EnumMap<>(Gene.class);
         Gene[] all = Gene.values();
 
-        for (int i = 0; i < 1 + random.nextInt(2); i++) {
+        for (int i = 0; i < 1 + random.nextInt(Math.max(1, maxTraits)); i++) {
             Gene gene = all[random.nextInt(all.length)];
-            genes.put(gene, PlantGenes.MIN_VALUE + 1 + random.nextInt(ceiling - PlantGenes.MIN_VALUE));
+            genes.put(gene, PlantGenes.MIN_VALUE + 1 + random.nextInt(top - PlantGenes.MIN_VALUE));
         }
         return new PlantGenes(genes);
     }

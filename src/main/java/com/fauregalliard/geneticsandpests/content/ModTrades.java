@@ -31,12 +31,14 @@ public final class ModTrades {
         // Journeyman: lime, which otherwise means finding a geode.
         event.getTrades().get(3).add(sell(2, ModItems.LIME.get(), 2, 8, 10));
 
-        // Expert: seed dressing, and the first strain worth buying.
+        // Expert: seed dressing, and field-grade seed — about what you would find growing in the
+        // village anyway, so the convenience is what you are paying for.
         event.getTrades().get(4).add(sell(3, ModItems.BRINE.get(), 1, 6, 15));
-        event.getTrades().get(4).add(new WildSeedTrade(8, 3, 15));
+        event.getTrades().get(4).add(new WildSeedTrade(8, 3, 15, 2, 5));
 
-        // Master: the farmer parts with the good seed.
-        event.getTrades().get(5).add(new WildSeedTrade(16, 2, 30));
+        // Master: the farmer's own stock, better than anything in his fields. This is what makes
+        // levelling him up worth the emeralds — the expert seed is not just cheaper, it is worse.
+        event.getTrades().get(5).add(new WildSeedTrade(16, 2, 30, 3, 9));
     }
 
     private static VillagerTrades.ItemListing sell(int emeralds, net.minecraft.world.item.Item result,
