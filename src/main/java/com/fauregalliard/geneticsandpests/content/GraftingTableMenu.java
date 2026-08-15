@@ -31,10 +31,19 @@ public class GraftingTableMenu extends AbstractContainerMenu {
         super(ModMenus.GRAFTING_TABLE.get(), id);
         this.bench = bench;
 
+        // Both input slots recompute the preview themselves. A block entity's setChanged() does not
+        // reach the menu, so relying on slotsChanged left the result stale until the screen was
+        // closed and opened again.
         this.addSlot(new Slot(bench, GraftingTableBlockEntity.SLOT_SEED, 44, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(ModTags.GENETIC_SEEDS);
+            }
+
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                GraftingTableMenu.this.refreshResult();
             }
         });
 
@@ -42,6 +51,12 @@ public class GraftingTableMenu extends AbstractContainerMenu {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return Catalyst.of(stack) != null || stack.has(ModDataComponents.SCION.get());
+            }
+
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                GraftingTableMenu.this.refreshResult();
             }
         });
 
