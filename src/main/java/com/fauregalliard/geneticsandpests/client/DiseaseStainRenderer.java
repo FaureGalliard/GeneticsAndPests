@@ -14,6 +14,7 @@ import com.fauregalliard.geneticsandpests.genetics.Disease;
 import com.fauregalliard.geneticsandpests.genetics.PlantGrowth;
 import com.fauregalliard.geneticsandpests.genetics.PlantState;
 import com.fauregalliard.geneticsandpests.registry.ModAttachments;
+import com.fauregalliard.geneticsandpests.registry.ModTags;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -106,9 +107,15 @@ public final class DiseaseStainRenderer {
                 for (BlockPos pos : stored.positions()) {
                     PlantState plant = stored.get(pos);
                     Disease disease = plant == null ? null : plant.diseaseOrNull();
-                    if (disease != null) {
-                        infected.computeIfAbsent(disease, key -> new ArrayList<>()).add(pos);
+                    if (disease == null) {
+                        continue;
                     }
+                    // Checked against the world rather than trusted from the stored data: the block
+                    // is gone the instant it is broken, while the removal takes a tick to arrive.
+                    if (!level.getBlockState(pos).is(ModTags.GENETIC_CROPS)) {
+                        continue;
+                    }
+                    infected.computeIfAbsent(disease, key -> new ArrayList<>()).add(pos);
                 }
             }
         }
