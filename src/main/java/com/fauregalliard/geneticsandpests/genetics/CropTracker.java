@@ -1,5 +1,7 @@
 package com.fauregalliard.geneticsandpests.genetics;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -299,23 +301,16 @@ public final class CropTracker {
      * something else. This is the only way Resistance can be bred deliberately — you have to let
      * the disease through your field to get it.
      *
-     * <p>The guards matter more than the effect. A gene is only ever taken from a trait that is
-     * actually developed, never from Resistance itself, and never from the plant's best trait, so a
-     * run of bad luck cannot undo the thing you spent the evening breeding.
+     * <p>Any developed trait can pay the price, the plant's best one included: a population under
+     * pressure really does lose ground somewhere, and shielding the prize gene would make the
+     * trade-off decorative. The only exclusion is Resistance itself, which is what is being bought.
      */
     private static PlantGenes adaptTo(PlantGenes genes, RandomSource random) {
         PlantGenes hardened = genes.with(Gene.RESISTANCE, genes.get(Gene.RESISTANCE) + 1);
 
-        Gene best = Gene.RESISTANCE;
+        List<Gene> payable = new ArrayList<>();
         for (Gene gene : Gene.values()) {
-            if (hardened.get(gene) > hardened.get(best)) {
-                best = gene;
-            }
-        }
-
-        java.util.List<Gene> payable = new java.util.ArrayList<>();
-        for (Gene gene : Gene.values()) {
-            if (gene != Gene.RESISTANCE && gene != best && hardened.get(gene) > PlantGenes.MIN_VALUE + 1) {
+            if (gene != Gene.RESISTANCE && hardened.get(gene) > PlantGenes.MIN_VALUE) {
                 payable.add(gene);
             }
         }
