@@ -19,6 +19,9 @@ public final class ModTags {
     /** Items that carry a genome between harvest and planting. */
     public static final TagKey<Item> GENETIC_SEEDS = TagKey.create(Registries.ITEM, id("genetic_seeds"));
 
+    /** Anything with an edge good enough to take a cutting: shears, swords, modded knives. */
+    public static final TagKey<Item> GRAFTING_BLADES = TagKey.create(Registries.ITEM, id("grafting_blades"));
+
     private static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(GeneticsAndPests.MODID, path);
     }

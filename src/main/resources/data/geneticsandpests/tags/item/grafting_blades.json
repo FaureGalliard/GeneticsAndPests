@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:shears",
+    {
+      "id": "#minecraft:swords",
+      "required": false
+    },
+    {
+      "id": "#c:tools/knife",
+      "required": false
+    },
+    {
+      "id": "#c:tools/shear",
+      "required": false
+    }
+  ]
+}

@@ -22,8 +22,9 @@ import org.jetbrains.annotations.Nullable;
 public class GraftingTableBlockEntity extends BlockEntity implements Container, MenuProvider {
     public static final int SLOT_SEED = 0;
     public static final int SLOT_TOOL = 1;
-    public static final int SLOT_RESULT = 2;
-    public static final int SIZE = 3;
+    public static final int SLOT_BLADE = 2;
+    public static final int SLOT_RESULT = 3;
+    public static final int SIZE = 4;
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SIZE, ItemStack.EMPTY);
 

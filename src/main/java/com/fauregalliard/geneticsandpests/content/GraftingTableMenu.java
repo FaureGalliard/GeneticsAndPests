@@ -6,6 +6,7 @@ import com.fauregalliard.geneticsandpests.registry.ModDataComponents;
 import com.fauregalliard.geneticsandpests.registry.ModMenus;
 import com.fauregalliard.geneticsandpests.registry.ModTags;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -60,7 +61,27 @@ public class GraftingTableMenu extends AbstractContainerMenu {
             }
         });
 
-        this.addSlot(new Slot(bench, GraftingTableBlockEntity.SLOT_RESULT, 134, 35) {
+        // The knife stays in the bench and simply wears out, so it reads as part of the workshop
+        // rather than as another ingredient to keep restocking.
+        this.addSlot(new Slot(bench, GraftingTableBlockEntity.SLOT_BLADE, 108, 35) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return stack.is(ModTags.GRAFTING_BLADES);
+            }
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
+
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                GraftingTableMenu.this.refreshResult();
+            }
+        });
+
+        this.addSlot(new Slot(bench, GraftingTableBlockEntity.SLOT_RESULT, 150, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
@@ -68,10 +89,11 @@ public class GraftingTableMenu extends AbstractContainerMenu {
 
             @Override
             public void onTake(Player player, ItemStack stack) {
-                // Both inputs are spent only once the player actually accepts the result, which is
+                // The inputs are spent only once the player actually accepts the result, which is
                 // what lets the preview sit there harmlessly while they decide.
                 bench.removeItem(GraftingTableBlockEntity.SLOT_SEED, 1);
                 bench.removeItem(GraftingTableBlockEntity.SLOT_TOOL, 1);
+                GraftingTableMenu.this.blunt(player);
                 GraftingTableMenu.this.refreshResult();
             }
         });
@@ -93,11 +115,30 @@ public class GraftingTableMenu extends AbstractContainerMenu {
         ItemStack seed = this.bench.getItem(GraftingTableBlockEntity.SLOT_SEED);
         ItemStack tool = this.bench.getItem(GraftingTableBlockEntity.SLOT_TOOL);
 
+        // No knife, no work. Both cutting and binding need one, which is what the blade slot is for.
+        if (!this.bench.getItem(GraftingTableBlockEntity.SLOT_BLADE).is(ModTags.GRAFTING_BLADES)) {
+            this.bench.setItem(GraftingTableBlockEntity.SLOT_RESULT, ItemStack.EMPTY);
+            return;
+        }
+
         ItemStack result = tool.has(ModDataComponents.SCION.get())
                 ? Grafting.graft(seed, tool)
                 : Grafting.extract(seed, Catalyst.of(tool));
 
         this.bench.setItem(GraftingTableBlockEntity.SLOT_RESULT, result);
+    }
+
+    /** Wears the knife down by one, and lets it break like any other tool. */
+    private void blunt(Player player) {
+        ItemStack blade = this.bench.getItem(GraftingTableBlockEntity.SLOT_BLADE);
+        if (blade.isEmpty() || !(player.level() instanceof ServerLevel level)) {
+            return;
+        }
+
+        blade.hurtAndBreak(1, level, player, broken -> {});
+        if (blade.isEmpty()) {
+            this.bench.setItem(GraftingTableBlockEntity.SLOT_BLADE, ItemStack.EMPTY);
+        }
     }
 
     @Override
@@ -127,7 +168,7 @@ public class GraftingTableMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
             slot.onQuickCraft(stack, original);
-        } else if (!this.moveItemStackTo(stack, 0, benchSlots - 1, false)) {
+        } else if (!this.moveItemStackTo(stack, 0, GraftingTableBlockEntity.SLOT_RESULT, false)) {
             return ItemStack.EMPTY;
         }
 
