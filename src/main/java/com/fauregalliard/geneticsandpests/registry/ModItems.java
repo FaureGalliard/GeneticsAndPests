@@ -2,8 +2,10 @@ package com.fauregalliard.geneticsandpests.registry;
 
 import com.fauregalliard.geneticsandpests.GeneticsAndPests;
 import com.fauregalliard.geneticsandpests.content.BrineItem;
+import com.fauregalliard.geneticsandpests.content.ScionItem;
 
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.BlockItem;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -22,6 +24,11 @@ public final class ModItems {
 
     /** Salt water for soaking seed, which is the only thing that clears Smut. */
     public static final DeferredItem<BrineItem> BRINE = ITEMS.registerItem("brine", BrineItem::new, Item.Properties::new);
+
+    /** A cutting carrying one trait, taken from a seed at the grafting bench. */
+    public static final DeferredItem<ScionItem> SCION = ITEMS.registerItem("scion", ScionItem::new, Item.Properties::new);
+
+    public static final DeferredItem<BlockItem> GRAFTING_TABLE = ITEMS.registerSimpleBlockItem(ModBlocks.GRAFTING_TABLE);
 
     private ModItems() {}
 }

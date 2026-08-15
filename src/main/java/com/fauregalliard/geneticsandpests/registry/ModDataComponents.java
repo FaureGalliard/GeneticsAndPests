@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import com.fauregalliard.geneticsandpests.GeneticsAndPests;
 import com.fauregalliard.geneticsandpests.genetics.Disease;
 import com.fauregalliard.geneticsandpests.genetics.PlantGenes;
+import com.fauregalliard.geneticsandpests.genetics.ScionData;
 
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -35,6 +36,13 @@ public final class ModDataComponents {
             DATA_COMPONENTS.register("tainted", () -> DataComponentType.<Boolean>builder()
                     .persistent(Codec.BOOL)
                     .networkSynchronized(ByteBufCodecs.BOOL)
+                    .build());
+
+    /** The trait and level a scion carries. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ScionData>> SCION =
+            DATA_COMPONENTS.register("scion", () -> DataComponentType.<ScionData>builder()
+                    .persistent(ScionData.CODEC)
+                    .networkSynchronized(ScionData.STREAM_CODEC)
                     .build());
 
     private ModDataComponents() {}

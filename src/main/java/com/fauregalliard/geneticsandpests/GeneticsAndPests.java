@@ -6,7 +6,10 @@ import com.mojang.logging.LogUtils;
 
 import com.fauregalliard.geneticsandpests.registry.ModAttachments;
 import com.fauregalliard.geneticsandpests.registry.ModDataComponents;
+import com.fauregalliard.geneticsandpests.registry.ModBlockEntities;
+import com.fauregalliard.geneticsandpests.registry.ModBlocks;
 import com.fauregalliard.geneticsandpests.registry.ModCreativeTabs;
+import com.fauregalliard.geneticsandpests.registry.ModMenus;
 import com.fauregalliard.geneticsandpests.registry.ModItems;
 
 import net.neoforged.bus.api.IEventBus;
@@ -26,7 +29,10 @@ public class GeneticsAndPests {
     public GeneticsAndPests(IEventBus modEventBus, ModContainer modContainer) {
         ModDataComponents.DATA_COMPONENTS.register(modEventBus);
         ModAttachments.ATTACHMENT_TYPES.register(modEventBus);
+        ModBlocks.BLOCKS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
+        ModBlockEntities.BLOCK_ENTITIES.register(modEventBus);
+        ModMenus.MENUS.register(modEventBus);
         ModCreativeTabs.CREATIVE_MODE_TABS.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);

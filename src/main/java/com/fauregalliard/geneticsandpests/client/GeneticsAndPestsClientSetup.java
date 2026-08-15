@@ -7,7 +7,10 @@ import net.minecraft.client.gui.components.debug.DebugScreenProfile;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import com.fauregalliard.geneticsandpests.registry.ModMenus;
+
 import net.neoforged.neoforge.client.event.RegisterDebugEntriesEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 /** Client-only registrations that have to happen on the mod event bus. */
 @EventBusSubscriber(modid = GeneticsAndPests.MODID, value = Dist.CLIENT)
@@ -21,6 +24,11 @@ public final class GeneticsAndPestsClientSetup {
         // ALWAYS_ON is a different thing entirely — a permanent HUD line during normal play.
         event.includeInProfile(PlantDebugEntry.ID, DebugScreenProfile.DEFAULT,
                 DebugScreenEntryStatus.IN_OVERLAY);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(ModMenus.GRAFTING_TABLE.get(), GraftingTableScreen::new);
     }
 
     private GeneticsAndPestsClientSetup() {}

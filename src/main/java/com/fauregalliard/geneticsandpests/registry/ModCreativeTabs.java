@@ -26,6 +26,8 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.ASH.get());
                         output.accept(ModItems.LIME.get());
                         output.accept(ModItems.BRINE.get());
+                        output.accept(ModItems.SCION.get());
+                        output.accept(ModItems.GRAFTING_TABLE.get());
                     })
                     .build());
 
