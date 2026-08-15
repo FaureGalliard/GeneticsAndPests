@@ -16,9 +16,11 @@ public class Config {
             .defineInRange("maxGeneValue", 20, 1, 100);
 
     public static final ModConfigSpec.DoubleValue INHERITANCE_DOMINANCE = BUILDER
-            .comment("Probability that a crossed gene takes the better parent's value instead of the weaker one.",
-                    "Breeding never lowers a gene on its own; this only decides how fast the better line wins.")
-            .defineInRange("inheritanceDominance", 0.75D, 0.0D, 1.0D);
+            .comment("Probability that a cross takes after its better parent rather than its weaker one.",
+                    "Rolled once per cross, not per gene. At the default of 1.0 a harvest is predictable",
+                    "and its seeds all stack together; lowering it brings back variety, at the cost of",
+                    "filling your inventory with near-identical single seeds.")
+            .defineInRange("inheritanceDominance", 1.0D, 0.0D, 1.0D);
 
     public static final ModConfigSpec.DoubleValue IMPROVEMENT_CHANCE = BUILDER
             .comment("Probability that a harvested seed attempts to improve one of its genes.",

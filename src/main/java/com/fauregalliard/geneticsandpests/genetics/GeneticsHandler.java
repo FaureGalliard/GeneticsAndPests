@@ -328,11 +328,16 @@ public final class GeneticsHandler {
      * <p>A beehive nearby widens the search from the four touching plants to everything within two
      * blocks: real pollinators carry pollen further than a plant can reach on its own, and it gives
      * the player a reason to keep bees beside the field.
+     *
+     * <p>The strongest neighbour is chosen rather than a random one. Picking at random made every
+     * plant in a field cross with someone different, so one harvest produced a scatter of genomes
+     * that could not share a stack. Taking the best makes a field converge on its own champion:
+     * seeds come back identical, and the patch reads as a single line improving together.
      */
     private static PlantGenes findMate(ServerLevel level, BlockPos pos, BlockState state,
                                        PlantGenes fallback, RandomSource random) {
         int reach = hasPollinators(level, pos) ? POLLINATED_REACH : 1;
-        List<PlantGenes> mates = new ArrayList<>();
+        PlantGenes best = null;
 
         for (BlockPos mate : BlockPos.betweenClosed(pos.offset(-reach, 0, -reach), pos.offset(reach, 0, reach))) {
             if (mate.equals(pos)) {
@@ -343,12 +348,12 @@ public final class GeneticsHandler {
                 continue;
             }
             PlantGenes genes = GeneStorage.get(level, mate);
-            if (genes != null) {
-                mates.add(genes);
+            if (genes != null && (best == null || genes.totalLevel() > best.totalLevel())) {
+                best = genes;
             }
         }
 
-        return mates.isEmpty() ? fallback : mates.get(random.nextInt(mates.size()));
+        return best == null ? fallback : best;
     }
 
     /** Whether an occupied hive stands close enough for its bees to work this plant. */

@@ -98,13 +98,15 @@ public record PlantGenes(Map<Gene, Integer> values) {
      * building should not decay because of a bad die.
      */
     public PlantGenes cross(PlantGenes other, RandomSource random) {
-        Map<Gene, Integer> child = new EnumMap<>(Gene.class);
-        double dominance = Config.INHERITANCE_DOMINANCE.getAsDouble();
+        // Rolled once for the whole cross rather than once per gene. Per-gene rolls meant the same
+        // two parents could produce any of 2^9 genomes, and since seeds only stack when their
+        // genomes match exactly, harvesting a field buried the player in single-item stacks.
+        boolean takeBetter = random.nextDouble() < Config.INHERITANCE_DOMINANCE.getAsDouble();
 
+        Map<Gene, Integer> child = new EnumMap<>(Gene.class);
         for (Gene gene : Gene.values()) {
             int mine = this.get(gene);
             int theirs = other.get(gene);
-            boolean takeBetter = random.nextDouble() < dominance;
             child.put(gene, takeBetter ? Math.max(mine, theirs) : Math.min(mine, theirs));
         }
         return new PlantGenes(child);
