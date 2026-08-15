@@ -35,9 +35,22 @@ public final class GeneStorage {
 
     public static void setState(Level level, BlockPos pos, PlantState state) {
         LevelChunk chunk = level.getChunkAt(pos);
-        chunk.getData(ModAttachments.CROP_GENES).put(pos, state);
-        chunk.markUnsaved();
+        CropGenes stored = chunk.getData(ModAttachments.CROP_GENES);
+        stored.put(pos, state);
+        markChanged(chunk, stored);
         CropTracker.track(level, chunk.getPos());
+    }
+
+    /**
+     * Flags the attachment as changed so it is both saved and re-sent to clients.
+     *
+     * <p>Editing the {@link CropGenes} object in place leaves no trace for NeoForge to notice, so
+     * without handing it back through {@code setData} the client keeps whatever it was told when
+     * the chunk was sent — which is how harvested plants went on staining the soil forever.
+     */
+    public static void markChanged(LevelChunk chunk, CropGenes stored) {
+        chunk.setData(ModAttachments.CROP_GENES, stored);
+        chunk.markUnsaved();
     }
 
     public static void set(Level level, BlockPos pos, PlantGenes genes) {
@@ -68,7 +81,7 @@ public final class GeneStorage {
         CropGenes stored = chunk.getExistingDataOrNull(ModAttachments.CROP_GENES);
         if (stored != null) {
             stored.remove(pos);
-            chunk.markUnsaved();
+            markChanged(chunk, stored);
         }
     }
 

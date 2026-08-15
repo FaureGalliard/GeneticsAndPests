@@ -130,7 +130,7 @@ public final class CropTracker {
                 if (!level.getBlockState(pos).is(ModTags.GENETIC_CROPS)) {
                     // The plant is gone; forget it rather than leaking an entry forever.
                     stored.remove(pos);
-                    chunk.markUnsaved();
+                    GeneStorage.markChanged(chunk, stored);
                     continue;
                 }
                 tickPlant(level, chunk, stored, pos, plant);
@@ -274,7 +274,7 @@ public final class CropTracker {
         if (disease.isLethal() && aged.infectedFor() >= Config.BLIGHT_LETHAL_PASSES.getAsInt()) {
             level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
             stored.remove(pos);
-            chunk.markUnsaved();
+            GeneStorage.markChanged(chunk, stored);
             return;
         }
 
@@ -282,12 +282,12 @@ public final class CropTracker {
         double recovery = Config.RECOVERY_CHANCE.getAsDouble() * (1.0D + plant.genes().diseaseResistance() * 4.0D);
         if (!disease.isLethal() && random.nextDouble() < recovery) {
             stored.put(pos, PlantState.healthy(adaptTo(plant.genes(), random)));
-            chunk.markUnsaved();
+            GeneStorage.markChanged(chunk, stored);
             return;
         }
 
         stored.put(pos, aged);
-        chunk.markUnsaved();
+        GeneStorage.markChanged(chunk, stored);
 
         if (disease.spread() == Disease.Spread.NEIGHBOURS) {
             spreadToNeighbours(level, pos, disease, random);
