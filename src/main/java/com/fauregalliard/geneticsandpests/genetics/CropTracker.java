@@ -176,6 +176,11 @@ public final class CropTracker {
             chance += Config.DROUGHT_GROWTH_CHANCE.getAsDouble();
         }
 
+        // Rain waters the field for you, but only where the sky can reach it.
+        if (level.isRaining() && level.canSeeSky(pos)) {
+            chance += Config.RAIN_GROWTH_CHANCE.getAsDouble();
+        }
+
         if (chance > 0.0D && random.nextDouble() < chance) {
             level.setBlock(pos, PlantGrowth.grown(state), 2);
         }
@@ -325,6 +330,11 @@ public final class CropTracker {
     private static void spreadToNeighbours(ServerLevel level, BlockPos pos, Disease disease, RandomSource random) {
         BlockState state = level.getBlockState(pos);
         double base = Config.DISEASE_SPREAD_CHANCE.getAsDouble() * disease.contagion();
+
+        // Wind and driving rain carry spores. A thunderstorm is when a field is lost.
+        if (level.isThundering()) {
+            base *= Config.STORM_SPREAD_MULTIPLIER.getAsDouble();
+        }
 
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             BlockPos neighbour = pos.relative(direction);

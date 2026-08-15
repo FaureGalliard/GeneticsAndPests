@@ -32,6 +32,15 @@ public class Config {
                     "Set to 1.0 to make every level equally likely.")
             .defineInRange("improvementFalloff", 0.90D, 0.01D, 1.0D);
 
+    public static final ModConfigSpec.DoubleValue RAIN_GROWTH_CHANCE = BUILDER
+            .comment("Chance per second of an extra growth stage while rain falls on the plant.",
+                    "Only applies where the sky can reach it, so greenhouses trade weather for control.")
+            .defineInRange("rainGrowthChance", 0.03D, 0.0D, 1.0D);
+
+    public static final ModConfigSpec.DoubleValue STORM_SPREAD_MULTIPLIER = BUILDER
+            .comment("How much faster disease spreads during a thunderstorm.")
+            .defineInRange("stormSpreadMultiplier", 3.0D, 1.0D, 100.0D);
+
     public static final ModConfigSpec.DoubleValue DISEASE_SPREAD_CHANCE = BUILDER
             .comment("Base probability, per disease pass, that a sick plant infects an adjacent one.",
                     "Each disease scales this by its own contagion.")
@@ -78,6 +87,16 @@ public class Config {
             .comment("Chance per second of shrugging off dry farmland, granted by Thirst")
             .defineInRange("droughtGrowthChance", 0.02D, 0.0D, 1.0D);
 
+    public static final ModConfigSpec.DoubleValue WILD_STRAIN_CHANCE = BUILDER
+            .comment("Probability that a naturally generated crop — in practice, a village field —",
+                    "carries a genome of its own. Set to 0 to keep the world's crops ordinary.")
+            .defineInRange("wildStrainChance", 0.25D, 0.0D, 1.0D);
+
+    public static final ModConfigSpec.IntValue WILD_STRAIN_CEILING = BUILDER
+            .comment("Highest gene level a wild strain can have. Deliberately well below the ceiling:",
+                    "a village should be a head start, not a shortcut past breeding.")
+            .defineInRange("wildStrainCeiling", 6, 2, 100);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     /**
@@ -96,11 +115,15 @@ public class Config {
         map.put("growthBonusChance", GROWTH_BONUS_CHANCE);
         map.put("lowLightGrowthChance", LOW_LIGHT_GROWTH_CHANCE);
         map.put("droughtGrowthChance", DROUGHT_GROWTH_CHANCE);
+        map.put("rainGrowthChance", RAIN_GROWTH_CHANCE);
+        map.put("stormSpreadMultiplier", STORM_SPREAD_MULTIPLIER);
         map.put("diseaseSpreadChance", DISEASE_SPREAD_CHANCE);
         map.put("outbreakChance", OUTBREAK_CHANCE);
         map.put("monocultureThreshold", MONOCULTURE_THRESHOLD);
         map.put("recoveryChance", RECOVERY_CHANCE);
         map.put("blightLethalPasses", BLIGHT_LETHAL_PASSES);
+        map.put("wildStrainChance", WILD_STRAIN_CHANCE);
+        map.put("wildStrainCeiling", WILD_STRAIN_CEILING);
         return Collections.unmodifiableMap(map);
     }
 }
