@@ -5,7 +5,7 @@
   "experience": 0.1,
   "ingredient": "minecraft:calcite",
   "result": {
-    "id": "geneticsandpests:lime",
-    "count": 1
+    "count": 1,
+    "id": "geneticsandpests:lime"
   }
 }

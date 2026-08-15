@@ -7,7 +7,7 @@
     "minecraft:dried_kelp"
   ],
   "result": {
-    "id": "geneticsandpests:brine",
-    "count": 1
+    "count": 1,
+    "id": "geneticsandpests:brine"
   }
 }
