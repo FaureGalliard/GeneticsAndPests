@@ -214,13 +214,20 @@ public final class GeneticsHandler {
      * Stamps genomes onto the seeds a harvest produced, pays out Yield and Fertility, and applies
      * whatever the disease does to the crop.
      *
-     * <p>Every seed is rolled on its own, so a harvest reads the way breeding should: most seeds
-     * come back close to the parent and the occasional one comes out better than it went in.
+     * <p>The improvement is rolled <em>once for the whole harvest</em> and lands on a single seed.
+     * Rolling it per seed produced a different genome on nearly every one, and since seeds only
+     * stack when their genomes match exactly, a season's farming turned into an inventory of
+     * one-item stacks. It matters most for potatoes and carrots, where the seed is also the food.
+     * One harvest now yields at most two kinds of seed: the ordinary offspring, and the lucky one.
      */
     private static void applyToDrops(List<ItemEntity> drops, ServerLevel level, BlockPos pos,
                                      PlantGenes parent, PlantGenes offspring, @Nullable Disease disease,
                                      boolean mature, RandomSource random) {
-        double improvementChance = Config.IMPROVEMENT_CHANCE.getAsDouble();
+        PlantGenes lucky = random.nextDouble() < Config.IMPROVEMENT_CHANCE.getAsDouble()
+                ? offspring.improved(random)
+                : offspring;
+        boolean luckyPending = !lucky.equals(offspring);
+
         List<ItemEntity> extras = new ArrayList<>();
         List<ItemEntity> ruined = new ArrayList<>();
 
@@ -236,14 +243,22 @@ public final class GeneticsHandler {
 
             // The stack that already exists becomes the first seed; the rest ride along beside it,
             // because two seeds with different genomes cannot share one stack.
-            stack.setCount(1);
-            stamp(stack, roll(offspring, improvementChance, random), disease);
-
-            for (int i = 1; i < seeds; i++) {
-                ItemStack extra = stack.copyWithCount(1);
-                stamp(extra, roll(offspring, improvementChance, random), disease);
-                extras.add(new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, extra));
+            // The improved seed is split off on its own; the rest share one genome and one stack.
+            if (luckyPending) {
+                ItemStack best = stack.copyWithCount(1);
+                stamp(best, lucky, disease);
+                extras.add(new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, best));
+                luckyPending = false;
+                seeds--;
             }
+
+            if (seeds <= 0) {
+                ruined.add(entity);
+                continue;
+            }
+
+            stack.setCount(seeds);
+            stamp(stack, offspring, disease);
         }
 
         drops.removeAll(ruined);
@@ -274,10 +289,6 @@ public final class GeneticsHandler {
         if (disease != null && disease.taintsProduce()) {
             stack.set(ModDataComponents.TAINTED.get(), true);
         }
-    }
-
-    private static PlantGenes roll(PlantGenes offspring, double improvementChance, RandomSource random) {
-        return random.nextDouble() < improvementChance ? offspring.improved(random) : offspring;
     }
 
     /**
