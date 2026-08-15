@@ -25,6 +25,8 @@ public class ScionItem extends Item {
         if (scion == null) {
             return;
         }
+        tooltipAdder.accept(scion.source().getName(scion.source().getDefaultInstance())
+                .copy().withStyle(ChatFormatting.DARK_GRAY));
         tooltipAdder.accept(Component.translatable(scion.gene().translationKey())
                 .append(" " + scion.level())
                 .withStyle(ChatFormatting.DARK_GRAY));

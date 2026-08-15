@@ -41,7 +41,7 @@ public final class Grafting {
         }
 
         ItemStack scion = new ItemStack(ModItems.SCION.get());
-        scion.set(ModDataComponents.SCION.get(), new ScionData(best, level));
+        scion.set(ModDataComponents.SCION.get(), new ScionData(seed.getItem(), best, level));
         return scion;
     }
 
@@ -52,6 +52,11 @@ public final class Grafting {
     public static ItemStack graft(ItemStack seed, ItemStack scionStack) {
         ScionData scion = scionStack.get(ModDataComponents.SCION.get());
         if (scion == null || !seed.is(ModTags.GENETIC_SEEDS)) {
+            return ItemStack.EMPTY;
+        }
+
+        // A cutting only takes on its own kind: potato onto potato, wheat onto wheat.
+        if (!scion.matches(seed)) {
             return ItemStack.EMPTY;
         }
 
