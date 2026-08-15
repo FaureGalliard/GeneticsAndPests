@@ -20,6 +20,17 @@ public class GraftingTableScreen extends AbstractContainerScreen<GraftingTableMe
         this.inventoryLabelY = this.imageHeight - 94;
     }
 
+    /**
+     * {@link AbstractContainerScreen#render} does not draw item tooltips in 1.21.11 — every vanilla
+     * container screen asks for them itself, and a screen that forgets simply shows nothing when you
+     * hover a slot.
+     */
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BACKGROUND,
