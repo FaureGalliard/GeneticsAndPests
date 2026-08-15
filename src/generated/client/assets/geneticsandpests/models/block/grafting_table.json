@@ -1,6 +1,7 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/cube_top",
   "textures": {
-    "all": "geneticsandpests:block/grafting_table"
+    "side": "geneticsandpests:block/grafting_table_side",
+    "top": "geneticsandpests:block/grafting_table_top"
   }
 }

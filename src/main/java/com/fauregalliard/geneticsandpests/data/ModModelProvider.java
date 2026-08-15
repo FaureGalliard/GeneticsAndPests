@@ -8,6 +8,7 @@ import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ModelProvider;
 import net.minecraft.client.data.models.model.ModelTemplates;
+import net.minecraft.client.data.models.model.TexturedModel;
 import net.minecraft.data.PackOutput;
 
 /**
@@ -28,6 +29,8 @@ public class ModModelProvider extends ModelProvider {
         itemModels.generateFlatItem(ModItems.BRINE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ModItems.SCION.get(), ModelTemplates.FLAT_ITEM);
 
-        blockModels.createTrivialCube(ModBlocks.GRAFTING_TABLE.get());
+        // A workbench needs a working surface: CUBE_TOP puts the bench top on the upper face and
+        // the plank side everywhere else, instead of the same texture on all six.
+        blockModels.createTrivialBlock(ModBlocks.GRAFTING_TABLE.get(), TexturedModel.CUBE_TOP);
     }
 }
