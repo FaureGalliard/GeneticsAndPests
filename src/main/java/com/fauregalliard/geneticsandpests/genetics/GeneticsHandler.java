@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
@@ -27,6 +28,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.entity.BeehiveBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -50,6 +52,12 @@ public final class GeneticsHandler {
      * that does not carry the stack, so it is remembered here for the tick in between.
      */
     private static final Map<UUID, ItemStack> PLANTING = new ConcurrentHashMap<>();
+
+    /** How far pollen travels once bees are involved. */
+    private static final int POLLINATED_REACH = 2;
+
+    /** How far from the plant a hive still counts. */
+    private static final int HIVE_RANGE = 8;
 
     // --- Planting -------------------------------------------------------------------------
 
@@ -314,26 +322,47 @@ public final class GeneticsHandler {
     }
 
     /**
-     * Picks a mature plant of the same kind from the four neighbours to breed with. A plant with no
-     * eligible neighbour pollinates itself, which keeps a lone crop from stalling.
+     * Picks a mature plant of the same kind to breed with. A plant with no eligible neighbour
+     * pollinates itself, which keeps a lone crop from stalling.
+     *
+     * <p>A beehive nearby widens the search from the four touching plants to everything within two
+     * blocks: real pollinators carry pollen further than a plant can reach on its own, and it gives
+     * the player a reason to keep bees beside the field.
      */
     private static PlantGenes findMate(ServerLevel level, BlockPos pos, BlockState state,
                                        PlantGenes fallback, RandomSource random) {
-        List<PlantGenes> mates = new ArrayList<>(4);
+        int reach = hasPollinators(level, pos) ? POLLINATED_REACH : 1;
+        List<PlantGenes> mates = new ArrayList<>();
 
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos neighbour = pos.relative(direction);
-            BlockState neighbourState = level.getBlockState(neighbour);
+        for (BlockPos mate : BlockPos.betweenClosed(pos.offset(-reach, 0, -reach), pos.offset(reach, 0, reach))) {
+            if (mate.equals(pos)) {
+                continue;
+            }
+            BlockState neighbourState = level.getBlockState(mate);
             if (!neighbourState.is(state.getBlock()) || !PlantGrowth.isMature(neighbourState)) {
                 continue;
             }
-            PlantGenes genes = GeneStorage.get(level, neighbour);
+            PlantGenes genes = GeneStorage.get(level, mate);
             if (genes != null) {
                 mates.add(genes);
             }
         }
 
         return mates.isEmpty() ? fallback : mates.get(random.nextInt(mates.size()));
+    }
+
+    /** Whether an occupied hive stands close enough for its bees to work this plant. */
+    private static boolean hasPollinators(ServerLevel level, BlockPos pos) {
+        for (BlockPos hive : BlockPos.betweenClosed(
+                pos.offset(-HIVE_RANGE, -HIVE_RANGE, -HIVE_RANGE),
+                pos.offset(HIVE_RANGE, HIVE_RANGE, HIVE_RANGE))) {
+            if (level.getBlockState(hive).is(BlockTags.BEEHIVES)
+                    && level.getBlockEntity(hive) instanceof BeehiveBlockEntity beehive
+                    && !beehive.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // --- Other consequences ---------------------------------------------------------------
