@@ -50,5 +50,6 @@
   "geneticsandpests.configuration.droughtGrowthChance": "Drought Growth Chance",
   "item.geneticsandpests.scion": "Scion",
   "block.geneticsandpests.grafting_table": "Grafting Table",
-  "container.geneticsandpests.grafting_table": "Grafting Table"
+  "container.geneticsandpests.grafting_table": "Grafting Table",
+  "item.geneticsandpests.grafting_table": "Grafting Table"
 }
