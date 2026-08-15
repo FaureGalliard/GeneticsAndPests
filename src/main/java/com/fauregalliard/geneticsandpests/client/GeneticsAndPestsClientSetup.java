@@ -16,10 +16,11 @@ public final class GeneticsAndPestsClientSetup {
     public static void onRegisterDebugEntries(RegisterDebugEntriesEvent event) {
         event.register(PlantDebugEntry.ID, new PlantDebugEntry());
 
-        // Registering alone only makes the entry available; without being put in a profile it never
-        // actually draws, which is why plain F3 showed nothing.
+        // Registering alone only makes the entry available; it also has to be put in a profile.
+        // IN_OVERLAY means "shown while the debug overlay is open", which is what F3 opens.
+        // ALWAYS_ON is a different thing entirely — a permanent HUD line during normal play.
         event.includeInProfile(PlantDebugEntry.ID, DebugScreenProfile.DEFAULT,
-                DebugScreenEntryStatus.ALWAYS_ON);
+                DebugScreenEntryStatus.IN_OVERLAY);
     }
 
     private GeneticsAndPestsClientSetup() {}
