@@ -11,7 +11,6 @@ import com.fauregalliard.geneticsandpests.registry.ModTags;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -45,6 +44,9 @@ public final class CropTracker {
 
     /** The eight neighbours a monoculture is measured across. */
     private static final int MONOCULTURE_SAMPLE = 8;
+
+    /** One pass in this many emits spores, keeping a large outbreak from becoming a particle storm. */
+    private static final int SYMPTOM_INTERVAL = 4;
 
     /** How many blocks near each player are checked for a fresh outbreak per pass. */
     private static final int SAMPLES_PER_PLAYER = 48;
@@ -348,32 +350,20 @@ public final class CropTracker {
     }
 
     /**
-     * The whole visual, and it uses no texture of its own on purpose: anything drawn per plant type
-     * would have to be redrawn for every crop of every mod.
+     * A few spores drifting off a sick plant.
      *
-     * <p>Two layers. Spores drift around the plant to say what the illness is up close, and a patch
-     * of coloured dust sits on whatever the plant is rooted in — farmland under wheat, the jungle
-     * log behind cocoa — so an infection reads as a stain on the ground from across the field.
+     * <p>Kept deliberately sparse. Telling the player where the infection is now falls to the ground
+     * stain drawn client-side; an outbreak covering a field would otherwise emit thousands of
+     * particles a second and read as noise rather than as illness.
      */
     private static void showSymptoms(ServerLevel level, BlockPos pos, Disease disease) {
+        if (level.random.nextInt(SYMPTOM_INTERVAL) != 0) {
+            return;
+        }
+
         level.sendParticles(disease.particle(),
                 pos.getX() + 0.5D, pos.getY() + 0.4D, pos.getZ() + 0.5D,
-                3, 0.3D, 0.2D, 0.3D, 0.0D);
-
-        Direction support = PlantGrowth.supportDirection(level.getBlockState(pos));
-        DustParticleOptions stain = new DustParticleOptions(disease.colour(), 1.4F);
-
-        // Pushed almost to the face of the supporting block, and flattened along that axis so the
-        // dust lies on the surface instead of hanging in the air.
-        level.sendParticles(stain,
-                pos.getX() + 0.5D + support.getStepX() * 0.45D,
-                pos.getY() + 0.5D + support.getStepY() * 0.45D,
-                pos.getZ() + 0.5D + support.getStepZ() * 0.45D,
-                5,
-                support.getStepX() == 0 ? 0.32D : 0.0D,
-                support.getStepY() == 0 ? 0.32D : 0.0D,
-                support.getStepZ() == 0 ? 0.32D : 0.0D,
-                0.0D);
+                1, 0.25D, 0.2D, 0.25D, 0.0D);
     }
 
     private CropTracker() {}
