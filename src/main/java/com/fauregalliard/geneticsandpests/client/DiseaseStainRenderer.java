@@ -1,5 +1,10 @@
 package com.fauregalliard.geneticsandpests.client;
 
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
@@ -31,12 +36,12 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 /**
  * Paints a stain on the ground under every infected plant.
  *
- * <p>Particles alone turned out to be too easy to miss — you have to already be looking at the
- * plant to notice them. A stain on the soil is what makes an outbreak legible from across a field.
+ * <p>Particles alone were too easy to miss and turned ugly in bulk. A stain on the soil is what
+ * makes an outbreak legible from across a field without filling the air with sprites.
  *
- * <p>There is one texture per disease and none per plant, which is the whole point: the decal is
- * drawn on whatever the plant is rooted in, so wheat stains its farmland and cocoa stains the log
- * behind it, and a crop from another mod needs no art of its own to take part.
+ * <p>There is one texture per disease and none per plant, which is the point: the decal goes on
+ * whatever the plant is rooted in, so wheat stains its farmland and cocoa the log behind it, and a
+ * crop from another mod needs no art of its own to take part.
  */
 @EventBusSubscriber(modid = GeneticsAndPests.MODID, value = Dist.CLIENT)
 public final class DiseaseStainRenderer {
@@ -46,8 +51,13 @@ public final class DiseaseStainRenderer {
     /** Lifts the decal off the surface so it does not fight with it for depth. */
     private static final double LIFT = 0.005D;
 
+    /**
+     * Drawn with the entities rather than after translucent blocks: that is the stage NeoForge
+     * itself renders world decorations in, and the only one where the pose stack is reliably
+     * present. Reading it as null in a later stage is what made the first attempt draw nothing.
+     */
     @SubscribeEvent
-    public static void onRenderLevel(RenderLevelStageEvent.AfterTranslucentBlocks event) {
+    public static void onRenderLevel(RenderLevelStageEvent.AfterEntities event) {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
         PoseStack pose = event.getPoseStack();
@@ -55,9 +65,31 @@ public final class DiseaseStainRenderer {
             return;
         }
 
-        Vec3 camera = minecraft.gameRenderer.getMainCamera().position();
+        Map<Disease, List<BlockPos>> infected = collectInfected(level, minecraft);
+        if (infected.isEmpty()) {
+            return;
+        }
+
+        Vec3 camera = event.getLevelRenderState().cameraRenderState.pos;
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
-        ChunkPos centre = new ChunkPos(BlockPos.containing(camera));
+
+        infected.forEach((disease, positions) -> {
+            // No culling, so the winding of the quad cannot make it invisible from whichever side
+            // the player happens to be standing on.
+            RenderType type = RenderTypes.entityCutoutNoCull(disease.stainTexture());
+            VertexConsumer consumer = buffers.getBuffer(type);
+            for (BlockPos pos : positions) {
+                drawStain(level, pose, consumer, camera, pos);
+            }
+            buffers.endBatch(type);
+        });
+    }
+
+    private static Map<Disease, List<BlockPos>> collectInfected(ClientLevel level, Minecraft minecraft) {
+        Map<Disease, List<BlockPos>> infected = new EnumMap<>(Disease.class);
+        ChunkPos centre = new ChunkPos(minecraft.player == null
+                ? BlockPos.ZERO
+                : minecraft.player.blockPosition());
 
         for (int dx = -CHUNK_RADIUS; dx <= CHUNK_RADIUS; dx++) {
             for (int dz = -CHUNK_RADIUS; dz <= CHUNK_RADIUS; dz++) {
@@ -75,35 +107,29 @@ public final class DiseaseStainRenderer {
                     PlantState plant = stored.get(pos);
                     Disease disease = plant == null ? null : plant.diseaseOrNull();
                     if (disease != null) {
-                        drawStain(level, pose, buffers, camera, pos, disease);
+                        infected.computeIfAbsent(disease, key -> new ArrayList<>()).add(pos);
                     }
                 }
             }
         }
-
-        buffers.endBatch();
+        return infected;
     }
 
-    private static void drawStain(ClientLevel level, PoseStack pose, MultiBufferSource buffers,
-                                  Vec3 camera, BlockPos pos, Disease disease) {
+    private static void drawStain(ClientLevel level, PoseStack pose, VertexConsumer consumer,
+                                  Vec3 camera, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         Direction support = PlantGrowth.supportDirection(state);
         Direction.Axis axis = support.getAxis();
 
         // Where the surface actually is. Farmland is an inch shy of a full block, so a decal drawn
-        // at the block boundary would hover above the soil rather than sit on it.
+        // at the block boundary would hover above the soil instead of sitting on it.
         double plane = surfaceOffset(level, pos, state, support, axis);
 
         pose.pushPose();
         pose.translate(pos.getX() - camera.x, pos.getY() - camera.y, pos.getZ() - camera.z);
 
-        // No culling, so the winding of the quad cannot make it invisible from the side you happen
-        // to be standing on.
-        RenderType type = RenderTypes.entityCutoutNoCull(disease.stainTexture());
-        VertexConsumer consumer = buffers.getBuffer(type);
         PoseStack.Pose entry = pose.last();
         int light = LevelRenderer.getLightColor(level, pos);
-
         float nx = -support.getStepX();
         float ny = -support.getStepY();
         float nz = -support.getStepZ();
