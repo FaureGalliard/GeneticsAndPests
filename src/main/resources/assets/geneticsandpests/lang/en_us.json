@@ -35,6 +35,9 @@
   "commands.geneticsandpests.cleared": "Removed the genome",
   "commands.geneticsandpests.unknown_gene": "There is no gene called '%s'",
   "commands.geneticsandpests.not_a_seed": "Hold a seed that takes part in the genetics system",
+  "commands.geneticsandpests.unknown_disease": "There is no disease called '%s'",
+  "commands.geneticsandpests.no_target": "Look at a crop first",
+  "commands.geneticsandpests.plants_affected": "Affected %s plants",
 
   "geneticsandpests.configuration.title": "Genetics and Pests Configs",
   "geneticsandpests.configuration.section.geneticsandpests.common.toml": "Genetics and Pests Configs",

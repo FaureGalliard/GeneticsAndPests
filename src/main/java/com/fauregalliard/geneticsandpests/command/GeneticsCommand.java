@@ -1,6 +1,7 @@
 package com.fauregalliard.geneticsandpests.command;
 
 import java.util.Arrays;
+import java.util.function.BiConsumer;
 
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -8,10 +9,13 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 
 import com.fauregalliard.geneticsandpests.Config;
 import com.fauregalliard.geneticsandpests.GeneticsAndPests;
+import com.fauregalliard.geneticsandpests.genetics.Disease;
 import com.fauregalliard.geneticsandpests.genetics.Gene;
+import com.fauregalliard.geneticsandpests.genetics.GeneStorage;
 import com.fauregalliard.geneticsandpests.genetics.PlantGenes;
 import com.fauregalliard.geneticsandpests.registry.ModDataComponents;
 import com.fauregalliard.geneticsandpests.registry.ModTags;
@@ -19,9 +23,12 @@ import com.fauregalliard.geneticsandpests.registry.ModTags;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -40,6 +47,11 @@ public final class GeneticsCommand {
     private static final String GENE_ARG = "gene";
     private static final String VALUE_ARG = "value";
     private static final String KEY_ARG = "key";
+    private static final String DISEASE_ARG = "disease";
+    private static final String RADIUS_ARG = "radius";
+
+    /** How far the command looks for the crop to act on. */
+    private static final double REACH = 24.0D;
 
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
@@ -68,10 +80,88 @@ public final class GeneticsCommand {
                                 .then(Commands.argument(VALUE_ARG, DoubleArgumentType.doubleArg())
                                         .executes(GeneticsCommand::setConfig))));
 
+        LiteralArgumentBuilder<CommandSourceStack> disease = Commands.literal("disease")
+                .then(Commands.literal("set")
+                        .then(Commands.argument(DISEASE_ARG, StringArgumentType.word())
+                                .suggests((context, builder) -> SharedSuggestionProvider.suggest(
+                                        Arrays.stream(Disease.values()).map(Disease::getSerializedName), builder))
+                                .executes(context -> setDisease(context, 0))
+                                .then(Commands.argument(RADIUS_ARG, IntegerArgumentType.integer(0, 32))
+                                        .executes(context -> setDisease(context,
+                                                IntegerArgumentType.getInteger(context, RADIUS_ARG))))))
+                .then(Commands.literal("clear")
+                        .executes(context -> clearDisease(context, 0))
+                        .then(Commands.argument(RADIUS_ARG, IntegerArgumentType.integer(0, 32))
+                                .executes(context -> clearDisease(context,
+                                        IntegerArgumentType.getInteger(context, RADIUS_ARG)))));
+
         event.getDispatcher().register(Commands.literal(GeneticsAndPests.MODID)
                 .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(genes)
-                .then(config));
+                .then(config)
+                .then(disease));
+    }
+
+    /**
+     * Infects whatever crop the player is looking at, and optionally everything around it.
+     *
+     * <p>Diseases spread far too slowly on purpose to be demonstrated on demand, so this exists to
+     * put a field into a known state for testing or for showing the mod off. It deliberately is not
+     * a set of pre-infected blocks: a block per disease per crop is exactly the per-plant content
+     * this mod exists to avoid.
+     */
+    private static int setDisease(CommandContext<CommandSourceStack> context, int radius)
+            throws CommandSyntaxException {
+        String name = StringArgumentType.getString(context, DISEASE_ARG);
+        Disease disease = Arrays.stream(Disease.values())
+                .filter(candidate -> candidate.getSerializedName().equals(name))
+                .findFirst()
+                .orElse(null);
+
+        if (disease == null) {
+            context.getSource().sendFailure(
+                    Component.translatable("commands.geneticsandpests.unknown_disease", name));
+            return 0;
+        }
+
+        int affected = forEachCrop(context, radius, (level, pos) -> GeneStorage.infect(level, pos, disease));
+        report(context, affected);
+        return affected;
+    }
+
+    private static int clearDisease(CommandContext<CommandSourceStack> context, int radius)
+            throws CommandSyntaxException {
+        int affected = forEachCrop(context, radius, GeneStorage::cure);
+        report(context, affected);
+        return affected;
+    }
+
+    /** Applies an action to every tracked crop within reach of where the player is looking. */
+    private static int forEachCrop(CommandContext<CommandSourceStack> context, int radius,
+                                   BiConsumer<ServerLevel, BlockPos> action) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        ServerLevel level = player.level();
+
+        if (!(player.pick(REACH, 0.0F, false) instanceof BlockHitResult hit)) {
+            throw new SimpleCommandExceptionType(
+                    Component.translatable("commands.geneticsandpests.no_target")).create();
+        }
+
+        BlockPos centre = hit.getBlockPos();
+        int affected = 0;
+        for (BlockPos pos : BlockPos.betweenClosed(centre.offset(-radius, -radius, -radius),
+                centre.offset(radius, radius, radius))) {
+            if (level.getBlockState(pos).is(ModTags.GENETIC_CROPS)) {
+                action.accept(level, pos.immutable());
+                affected++;
+            }
+        }
+        return affected;
+    }
+
+    private static void report(CommandContext<CommandSourceStack> context, int affected) {
+        context.getSource().sendSuccess(
+                () -> Component.translatable("commands.geneticsandpests.plants_affected", affected), false);
     }
 
     /**
@@ -202,7 +292,7 @@ public final class GeneticsCommand {
         ItemStack stack = player.getMainHandItem();
 
         if (!stack.is(ModTags.GENETIC_SEEDS)) {
-            throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(
+            throw new SimpleCommandExceptionType(
                     Component.translatable("commands.geneticsandpests.not_a_seed")).create();
         }
         return stack;
